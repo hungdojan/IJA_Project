@@ -1,0 +1,299 @@
+package ija.umleditor.models;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+public class UMLClass extends UMLClassifier {
+
+    protected boolean isAbstract;
+    protected List<UMLAttribute> attributes;
+    protected Set<UMLRelation> relations = new HashSet<>();
+    protected Set<UMLClass> parentClasses = new HashSet<>();
+
+    /**
+     * Class {@code UMLClass} constructor
+     * @param name Element's name
+     */
+    public UMLClass(String name) {
+        super(name, true);
+        isAbstract = false;
+        attributes = new ArrayList<>();
+    }
+
+    /**
+     * Class {@code UMLClass} constructor
+     * @param name          Element's name
+     * @param memberFields  Collection of {@code UMLAttributes} and {@code UMLOperations}
+     */
+    public UMLClass(String name, UMLAttribute...memberFields) {
+        super(name);
+        isAbstract = false;
+        this.attributes.addAll(List.of(memberFields));
+    }
+
+    /**
+     * Checks if class is abstract.
+     * @return true if class is abstract; false otherwise
+     */
+    public boolean isAbstract() {
+        return isAbstract;
+    }
+
+    /**
+     * Update class abstract status.
+     * @param anAbstract New abstract status
+     */
+    public void setAbstract(boolean anAbstract) {
+        isAbstract = anAbstract;
+    }
+
+    /**
+     * Returns read-only collection of class attributes (attributes and operations).
+     * @return Read-only collection of class attributes and operations
+     */
+    public List<UMLAttribute> getAttributes() {
+        return Collections.unmodifiableList(attributes);
+    }
+
+    /**
+     * Returns set of parent classes.
+     * @return Immutable set of base classes.
+     */
+    public Set<UMLClass> getParentClasses() {
+        return Collections.unmodifiableSet(parentClasses);
+    }
+
+    /**
+     * Returns set of relations associated with this class.
+     * @return Immutable set of relations
+     */
+    public Set<UMLRelation> getRelations() {
+        return Collections.unmodifiableSet(relations);
+    }
+
+    /**
+     * Factory function that creates new attribute.
+     * When no {@code args} are passed, function creates {@code UMLAttribute}, otherwise {@code UMLOperation} is created.
+     * @param name Name of the attribute
+     * @param type (Return) type of the attribute
+     * @param args Indefinite number of operation arguments (optional)
+     * @return Newly created instance of {@code UMLAttribute}
+     */
+    public static UMLAttribute createAttribute(String name, UMLClassifier type, UMLAttribute...args) {
+        if (args.length < 1)
+            return new UMLAttribute(name, type);
+        return new UMLOperation(name, type, args);
+    }
+
+    /**
+     * Adds new attribute to the class.
+     * If attribute with identical name as given {@code attr} already exists in class OLD INSTANCE IS PRESERVED.
+     * @param attr Attribute to add
+     * @return true if insertion ended successfully; false otherwise
+     */
+    public boolean addAttribute(UMLAttribute attr) {
+        // search for attribute with identical name
+        UMLAttribute attribute = attributes.stream()
+                .filter(x -> Objects.equals(x.name, attr.name))
+                .findFirst().orElse(null);
+
+        // nothing found
+        if (attribute == null)
+            return attributes.add(attr);
+        return false;
+    }
+
+    /**
+     * Adds new attribute to the class.
+     * If attribute with identical name as given {@code attr} already exists in class OLD INSTANCE IS REPLACED by the new one.
+     * @param attr Attribute to add
+     * @return Instance of old attribute if it was replaced; null otherwise
+     */
+    public UMLAttribute addOrReplaceAttribute(UMLAttribute attr) {
+        // search for attribute with identical name
+        UMLAttribute attribute = attributes.stream()
+                .filter(x -> Objects.equals(x.name, attr.name))
+                .findFirst().orElse(null);
+
+        attributes.add(attr);
+        // remove old attribute
+        if (attribute != null)
+            attributes.remove(attribute);
+        return attribute;
+    }
+
+    /**
+     * Returns instance of {@code UMLAttribute} in the class by a given name
+     * @param name Asked attribute's name
+     * @return Found attribute; null if not found
+     */
+    public UMLAttribute getAttribute(String name) {
+        return attributes.stream()
+                .filter(x -> Objects.equals(x.name, name))
+                .findFirst().orElse(null);
+    }
+
+    /**
+     * Returns collection of all callable operations.
+     * Collection contains operation of this class and operations that it inhereted from the base classes.
+     * @return Collection of available operations
+     */
+    public List<UMLOperation> getOperations() {
+        // list of operations from the base classes
+        List<UMLOperation> parentOperations = parentClasses.stream().flatMap(e -> e.getOperations().stream()).collect(Collectors.toList());
+        // list of operations from this class
+        List<UMLOperation> currentOperations = attributes.stream().filter(x -> x instanceof UMLOperation).map(x -> (UMLOperation) x).collect(Collectors.toList());
+        // return concatenated list
+        return Stream.concat(currentOperations.stream(), parentOperations.stream()).collect(Collectors.toList());
+    }
+
+    /**
+     * Returns attribute from a given position.
+     * @param pos Asked position
+     * @return Found attribute; null if position out of range
+     */
+    public UMLAttribute getAttributeAtPosition(int pos) {
+        if (pos >= attributes.size())
+            return null;
+        return attributes.get(pos);
+    }
+
+    /**
+     * Get attributes position in the class.
+     * @param attr Instance of asked attribute
+     * @return Index position of the attribute; -1 if not found in the class
+     */
+    public int getAttributePosition(UMLAttribute attr) {
+        return attributes.indexOf(attr);
+    }
+
+    /**
+     * Move attribute of a given name to the given position.
+     * Method terminates when position is out of range or attribute was not found.
+     * @param name Attribute' name
+     * @param pos Attribute's new position
+     * @return true if method ended successfully; false otherwise
+     */
+    public boolean moveAttributeToPosition(String name, int pos) {
+        UMLAttribute attr = getAttribute(name);
+        int index = attributes.indexOf(attr);
+        if (pos < 0 || pos >= attributes.size() || index < 0)
+            return false;
+
+        // moving process
+        attributes.remove(index);
+        attributes.add(pos, attr);
+
+        return true;
+    }
+
+    /**
+     * Removes attribute by a given name from the class.
+     * @param name Attribute's name
+     * @return Instance of removed attribute when successfully removed from the class; null otherwise
+     */
+    public UMLAttribute removeAttribute(String name) {
+        UMLAttribute attr = attributes.stream()
+                .filter(x -> Objects.equals(x.name, name))
+                .findFirst().orElse(null);
+        attributes.remove(attr);
+        return attr;
+    }
+
+    /**
+     * Removes attribute from the class.
+     * @param attr Instance of attribute
+     * @return true if successfully removed; false otherwise
+     */
+    public boolean removeAttribute(UMLAttribute attr) {
+        return attributes.remove(attr);
+    }
+
+    /**
+     * Adds new parent class.
+     * Parent classes are used for sharing {@code UMLOperation}s.
+     * @param parentClass Instance of parent class
+     * @return true if successfully added; false otherwise
+     */
+    public boolean addParentClass(UMLClass parentClass) {
+        return parentClasses.add(parentClass);
+    }
+
+    /**
+     * Removes class from the set of parent classes.
+     * Parent classes are used for sharing {@code UMLOperation}s.
+     * @param parentClass Instance of parent class
+     * @return true if successfully removed; false otherwise
+     */
+    public boolean removeParentClass(UMLClass parentClass) {
+        return parentClasses.remove(parentClass);
+    }
+
+    /**
+     * Adds new relation between this class and {@code} class.
+     * @param dest Second class
+     * @param type Type of relation
+     * @return true if successfully added; false otherwise
+     */
+    public boolean addRelation(UMLClass dest, RelationType type) {
+        UMLRelation relation = new UMLRelation(this, dest);
+        relation.setRelationType(type);
+        relation.setRelationDependency();
+        return relations.add(relation);
+    }
+
+    /**
+     * Adds instance of relation to the class.
+     * @param relation Instance of relation.
+     * @return true if successfully added; false otherwise
+     */
+    public boolean addRelation(UMLRelation relation) {
+        return relations.add(relation);
+    }
+
+
+    /**
+     * Gets relation between this and {@code dest} class.
+     * @param dest Destination class
+     * @return Instance of found relation; null otherwise
+     */
+    public UMLRelation getRelation(UMLClass dest) {
+        return relations.stream().filter(x -> x.compareClassesInRelation(this, dest)).findFirst().orElse(null);
+    }
+
+    /**
+     * Removes given relation from the class.
+     * @param relation Instance of relation
+     * @return true if successfully removed; false otherwise
+     */
+    public boolean removeRelation(UMLRelation relation) {
+        return relations.remove(relation);
+    }
+
+    /**
+     * Removes relation with given class.
+     * @param cls Destination class
+     * @return true if successfully removed; false oterwise
+     */
+    public boolean removeRelationWithClass(UMLClass cls) {
+        // search for a relation that is shared between this UMLClass and cls
+        // function UMLRelation::removeRelationDependency will be called to clear dependencies of both classes
+        UMLRelation relation = relations.stream()
+                .filter(x -> x.compareClassesInRelation(this, cls))
+                .findFirst().orElse(null);
+
+        // clear of dependencies
+        if (relation != null)
+            relation.removeRelationDependency();
+        return relations.remove(relation);
+    }
+
+    /**
+     * Clear all relations with this class.
+     */
+    public void clearAllRelations() {
+        relations.forEach(UMLRelation::removeRelationDependency);
+        relations.clear();
+    }
+}
