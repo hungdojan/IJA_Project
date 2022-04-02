@@ -119,6 +119,46 @@ public class ClassDiagram extends Element {
     }
 
     /**
+     * Updates classifier's name.
+     * If classifier is not define in the diagram or
+     * other classifier with new name is already defined, operation is halted and class diagram is unchanged.
+     * @param classifier Instance of classifier
+     * @param name       New classifier's name
+     * @return true if name is successfully changed; false when {@code classifier} is not in the diagram
+     *          or name is already occupied
+     */
+    public boolean changeClassifierName(UMLClassifier classifier, String name) {
+        if (!classElements.contains(classifier))
+            return false;
+
+        var c = getClassifier(name);
+        if (c != null)
+            return false;
+
+        classifier.setName(name);
+        return true;
+    }
+
+    /**
+     * Updates classifier's name.
+     * If there is no classifier with {@code oldName}
+     * or {@code newName} is already occupied, operation is halted and class diagram is unchanged.
+     * @param oldName Old classifier's name
+     * @param newName New classifier's name
+     * @return true if name is successfully changed; false when classifier with {@code oldName}
+     *          is not in the diagram or {@code newName} is already occupied
+     */
+    public boolean changeClassifierName(String oldName, String newName) {
+        var oldClassifier = getClassifier(oldName);
+        var newClassifier = getClassifier(newName);
+        if (oldClassifier == null || newClassifier != null)
+            return false;
+
+        oldClassifier.setName(newName);
+        return true;
+    }
+
+    /**
      * Search for a classifier in class diagram.
      * @param name Name of the classifier
      * @return Found classifier in diagram; null if not found

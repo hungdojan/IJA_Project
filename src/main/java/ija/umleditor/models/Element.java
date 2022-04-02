@@ -23,7 +23,7 @@ public class Element {
      * Sets new element's name
      * @param name Element's name
      */
-    public void setName(String name) {
+    protected void setName(String name) {
         this.name = name;
     }
 }
