@@ -117,7 +117,7 @@ public class UMLOperation extends UMLAttribute {
 
     @Override
     public String toString() {
-        return visibility + type + " " + name + "(" +
+        return visibility + type.getName() + " " + name + "(" +
                operationParameters.stream().map(UMLAttribute::toString).collect(Collectors.joining(", ")) +
                 ")";
     }
