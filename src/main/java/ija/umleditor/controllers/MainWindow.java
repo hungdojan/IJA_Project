@@ -21,10 +21,18 @@ public class MainWindow {
 
     private GClassDiagram baseDiagram;
 
+    /**
+     * Initializes rest of the window after creating main window layout.
+     * @throws FileNotFoundException Exception is thrown in case of errors while loading assets
+     */
     public void initialize() throws FileNotFoundException {
         baseDiagram = new GClassDiagram(createTemplateModel(), mainTab);
     }
 
+    /**
+     * Creates template class diagram for use.
+     * @return Created instance of class diagram with some basic classifiers added
+     */
     private ClassDiagram createTemplateModel() {
         ClassDiagram classDiagram = new ClassDiagram();
         classDiagram.addClassifiers(
@@ -37,8 +45,13 @@ public class MainWindow {
         return classDiagram;
     }
 
+    /**
+     * Creates new instance of class diagram.
+     * @throws FileNotFoundException Exception is thrown in case of errors while loading assets
+     */
     public void newClass() throws FileNotFoundException {
         ClassDiagram model = createTemplateModel();
+        mainTab.getTabs().clear();
         baseDiagram = new GClassDiagram(model, mainTab);
     }
 
@@ -70,6 +83,22 @@ public class MainWindow {
         if (baseDiagram != null) {
             ClassDiagram.saveClassDiagramToFile(baseDiagram.getModel(), selectedFile.getAbsolutePath());
         }
+    }
+
+    /**
+     * Opens help dialog window.
+     */
+    public void showHelp() {
+        // TODO: show Help dialog
+        System.out.println("Help dialog");
+    }
+
+    /**
+     * Opens about dialog window.
+     */
+    public void showAbout() {
+        // TODO: show About dialog
+        System.out.println("About dialog");
     }
 
     /**
