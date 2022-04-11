@@ -14,11 +14,27 @@ public class ClassDiagram extends Element {
 
     /**
      * Class {@code ClassDiagram} constructor
+     */
+    public ClassDiagram() {
+        super("");
+        classElements = new ArrayList<>();
+    }
+
+    /**
+     * Class {@code ClassDiagram} constructor
      * @param name Class diagram name
      */
     public ClassDiagram(String name) {
         super(name);
         classElements = new ArrayList<>();
+    }
+
+    /**
+     * Sets new class diagram name
+     * @param name New class diagram's name
+     */
+    public void setName(String name) {
+        super.setName(name);
     }
 
     /**
@@ -54,6 +70,7 @@ public class ClassDiagram extends Element {
      */
     public static void saveClassDiagramToFile(ClassDiagram classDiagram, String path) {
         // TODO:
+        System.out.println("Imma save this shit");
     }
 
     /**

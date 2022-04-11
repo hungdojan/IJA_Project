@@ -75,13 +75,15 @@ public class UMLClass extends UMLClassifier {
     /**
      * Factory function that creates new attribute.
      * When no {@code args} are passed, function creates {@code UMLAttribute}, otherwise {@code UMLOperation} is created.
+     * @param isOperation Choose whether to create operation or attribute
      * @param name Name of the attribute
      * @param type (Return) type of the attribute
      * @param args Indefinite number of operation arguments (optional)
      * @return Newly created instance of {@code UMLAttribute}
      */
-    public static UMLAttribute createAttribute(String name, UMLClassifier type, UMLAttribute...args) {
-        if (args.length < 1)
+    public static UMLAttribute createAttribute(boolean isOperation, String name, UMLClassifier type, UMLAttribute...args) {
+        // FIXME: documentation
+        if (!isOperation)
             return new UMLAttribute(name, type);
         return new UMLOperation(name, type, args);
     }

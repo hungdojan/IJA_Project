@@ -57,6 +57,6 @@ public class UMLAttribute extends Element {
 
     @Override
     public String toString() {
-        return visibility + type + " " + name;
+        return visibility + type.getName() + " " + name;
     }
 }
