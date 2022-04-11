@@ -4,17 +4,15 @@ import ija.umleditor.models.*;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,6 +30,7 @@ public class GClassDiagram {
     private double mousePanePosX;
     private double mousePanePosY;
     private boolean clickable = true;
+    private boolean deleteFlag = true;
 
     public ClassDiagram getModel() {
         return model;
@@ -164,6 +163,8 @@ public class GClassDiagram {
         model = Objects.requireNonNull(classDiagram);
         Tab tab = new Tab("Class diagram");
         tab.setClosable(false);
+        // set flag to ignore deleting element when class diagram tab is not in focus
+        tab.setOnSelectionChanged(ev -> deleteFlag = tab.isSelected());
 
         // base content
         content = new HBox();
@@ -195,7 +196,6 @@ public class GClassDiagram {
         // });
         // set clip
         // TODO: end of testing
-        // TODO: add classDiagram content to canvas
 
         // left panel with objects to create
         AnchorPane leftPane = new AnchorPane();
@@ -203,6 +203,18 @@ public class GClassDiagram {
 
         // right menu with selected class
         content.getChildren().addAll(leftPane, canvas);
+
+        // event to delete selected class element with DELETE
+        rootTab.setOnKeyPressed(ev -> {
+            if (ev.getCode() == KeyCode.DELETE) {
+
+                if (selectedElement != null && deleteFlag) {
+                    model.removeClassElement(selectedElement.getModel());
+                    canvas.getChildren().remove(selectedElement.getBaseLayout());
+                    setSelectedElement(null);
+                }
+            }
+        });
 
         // TODO: rozlozeni
         tab.setContent(content);

@@ -4,9 +4,11 @@ import ija.umleditor.models.UMLAttribute;
 import ija.umleditor.models.UMLClass;
 import ija.umleditor.models.UMLClassifier;
 import ija.umleditor.models.UMLOperation;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 
@@ -19,7 +21,7 @@ public class GClassElement {
     private double posY;
     private boolean selectable = true;
 
-    private VBox classBox;
+    private final VBox classBox;
     private VBox attributesBox = null;
     private VBox operationsBox = null;
 
@@ -42,12 +44,44 @@ public class GClassElement {
         return model;
     }
 
-    public void addOperation() {
-        baseLayout.getChildren().add(new Label());
-        // TODO: root.getChildren().add()
+    public Group getBaseLayout() {
+        return baseLayout;
     }
 
-    public void removeOperation() {
+    public void changeName(String name) {
+
+    }
+
+    public void addOperation(UMLOperation oper) {
+        // TODO: check for duplicity
+        if (operationsBox == null) {
+            operationsBox = new VBox();
+            operationsBox.setStyle("-fx-border-color: black; -fx-background-color: white; -fx-border-width: 3");
+            classBox.getChildren().add(operationsBox);
+        }
+        // add operation to set of attributes
+        // when operation with given name already exists
+        // insertion is aborted and function returns false
+        if (((UMLClass) model).addAttribute(oper)) {
+            Label operationLabel = new Label();
+            operationLabel.textProperty().bind(new SimpleStringProperty(oper.toString()));
+            operationLabel.setAlignment(Pos.CENTER_LEFT);
+            operationLabel.setPadding(new Insets(3, 3, 3, 3));
+            operationsBox.getChildren().add(operationLabel);
+        } else {
+            // TODO: show warning dialog
+            Alert a = new Alert(Alert.AlertType.ERROR);
+            a.setTitle("Duplicity found");
+            a.setContentText("Cannot create attribute that already exists within selected class");
+            a.show();
+        }
+    }
+
+    public void removeOperation(String operName) {
+        // TODO:
+    }
+
+    public void removeOperation(UMLOperation oper) {
         // TODO:
     }
 
@@ -57,14 +91,29 @@ public class GClassElement {
             attributesBox.setStyle("-fx-border-color: black; -fx-background-color: white; -fx-border-width: 3");
             classBox.getChildren().add(1, attributesBox);
         }
-        Label attribute = new Label();
-        attribute.setAlignment(Pos.CENTER_LEFT);
-        attribute.setPadding(new Insets(3, 3, 3, 3));
-        attribute.setText(attr.toString());
-        attributesBox.getChildren().add(attribute);
+        // add attribute to set of attributes
+        // when attribute with given name already exists
+        // insertion is aborted and function returns false
+        if (((UMLClass) model).addAttribute(attr)) {
+            Label attribute = new Label();
+            attribute.textProperty().bind(new SimpleStringProperty(attr.toString()));
+            attribute.setAlignment(Pos.CENTER_LEFT);
+            attribute.setPadding(new Insets(3, 3, 3, 3));
+            attributesBox.getChildren().add(attribute);
+        } else {
+            // TODO: show warning dialog
+            Alert a = new Alert(Alert.AlertType.ERROR);
+            a.setTitle("Duplicity found");
+            a.setContentText("Cannot create attribute that already exists within selected class");
+            a.show();
+        }
     }
 
     public void removeAttribute() {
+        // TODO:
+    }
+
+    public void changeAttributeName(String oldName, String newName) {
         // TODO:
     }
 
@@ -101,8 +150,9 @@ public class GClassElement {
 
         classBox = new VBox(-3);
 
-        // top rectangle
-        Label name = new Label(model.getName());
+        // top rectangle; bind text content with class name
+        Label name = new Label();
+        name.textProperty().bind(new SimpleStringProperty(model.getName()));
 
         name.setAlignment(Pos.CENTER);
         // TODO: new padding
@@ -113,6 +163,7 @@ public class GClassElement {
         List<UMLAttribute> lofAttr = ((UMLClass) model).getAttributes();
         for (var item : lofAttr) {
             Label attribute = new Label();
+            attribute.textProperty().bind(new SimpleStringProperty(item.toString()));
             attribute.setAlignment(Pos.CENTER_LEFT);
             attribute.setPadding(new Insets(3, 3, 3, 3));
             if (item instanceof UMLOperation) {
@@ -120,14 +171,12 @@ public class GClassElement {
                     operationsBox = new VBox();
                     operationsBox.setStyle("-fx-border-color: black; -fx-background-color: white; -fx-border-width: 3");
                 }
-                attribute.setText(item.toString());
                 operationsBox.getChildren().add(attribute);
             } else {
                 if (attributesBox == null) {
                     attributesBox = new VBox();
                     attributesBox.setStyle("-fx-border-color: black; -fx-background-color: white; -fx-border-width: 3");
                 }
-                attribute.setText(item.toString());
                 attributesBox.getChildren().add(attribute);
             }
         }
