@@ -1,6 +1,7 @@
 package ija.umleditor.controllers;
 
 import ija.umleditor.models.ClassDiagram;
+import ija.umleditor.template.Templates;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.MenuBar;
@@ -26,23 +27,7 @@ public class MainWindow {
      * @throws FileNotFoundException Exception is thrown in case of errors while loading assets
      */
     public void initialize() throws FileNotFoundException {
-        baseDiagram = new GClassDiagram(createTemplateModel(), mainTab);
-    }
-
-    /**
-     * Creates template class diagram for use.
-     * @return Created instance of class diagram with some basic classifiers added
-     */
-    private ClassDiagram createTemplateModel() {
-        ClassDiagram classDiagram = new ClassDiagram();
-        classDiagram.addClassifiers(
-                ClassDiagram.createClassifier("void", false),
-                ClassDiagram.createClassifier("int", false),
-                ClassDiagram.createClassifier("string", false),
-                ClassDiagram.createClassifier("double", false),
-                ClassDiagram.createClassifier("bool", false)
-                );
-        return classDiagram;
+        baseDiagram = new GClassDiagram(Templates.createClassDiagramModel(), mainTab);
     }
 
     /**
@@ -50,9 +35,9 @@ public class MainWindow {
      * @throws FileNotFoundException Exception is thrown in case of errors while loading assets
      */
     public void newClass() throws FileNotFoundException {
-        ClassDiagram model = createTemplateModel();
         mainTab.getTabs().clear();
-        baseDiagram = new GClassDiagram(model, mainTab);
+        baseDiagram = new GClassDiagram(Templates.createClassDiagramModel(), mainTab);
+        GClassElement.initPositions();
     }
 
     /**
@@ -60,6 +45,7 @@ public class MainWindow {
      * @throws FileNotFoundException Exception is thrown in case of non-existence of file.
      */
     public void loadFile() throws FileNotFoundException {
+        GClassElement.initPositions();
         // create opening window dialog
         FileChooser fileChooser = new FileChooser();
         File selectedFile =  fileChooser.showOpenDialog(baseLayout.getScene().getWindow());

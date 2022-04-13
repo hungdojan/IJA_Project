@@ -1,6 +1,7 @@
 package ija.umleditor.controllers;
 
 import ija.umleditor.models.*;
+import ija.umleditor.template.Templates;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -19,17 +20,18 @@ import java.util.List;
 import java.util.Objects;
 
 public class GClassDiagram {
-    private static int classCounter = 1;
     private final ClassDiagram model;
     private GClassElement selectedElement = null;
     private RightMenu rightMenu = null;
+    private List<GClassElement> gClassElementList = new ArrayList<>();
+    private List<GRelation> gRelationsList = new ArrayList<>();
 
     private final HBox content;
     private final Pane canvas;
 
-    private double mousePanePosX;
-    private double mousePanePosY;
+    // element can be clicked on and was not dragged
     private boolean clickable = true;
+    // user is in current diagram's tab and selected element can be deleted
     private boolean deleteFlag = true;
 
     public ClassDiagram getModel() {
@@ -47,11 +49,8 @@ public class GClassDiagram {
         );
         for (var pathName : lofAssets) {
 
-            // get image from list
-            FileInputStream input = new FileInputStream(getClass().getResource(pathName).getPath());
-
             // create Image and ImageView
-            Image classImg = new Image(input);
+            Image classImg = new Image(Objects.requireNonNull(getClass().getResourceAsStream(pathName)));
             ImageView classImgView = new ImageView();
 
             // set size of images
@@ -69,36 +68,24 @@ public class GClassDiagram {
             // set scaling ang margins of VBox
             VBox.setVgrow(pic1, Priority.ALWAYS);
             VBox.setMargin(pic1, new Insets(20, 20, 20, 20));
-            // TODO: event on mouse clicked
-            // pic1.setOnMouseClicked(ev -> {
-            //     new GClassElement(canvas, new UMLClass("test"), this);
-            // });
         }
+
         var objects = root.getChildren();
         // only image view is clickable
         // class
         ((AnchorPane) objects.get(0)).getChildren().get(0).setOnMouseClicked(ev -> {
-            int operationCounter = 1;
-            var inter = (UMLClass) ClassDiagram.createClassifier("Class" + classCounter++, true);
-            inter.addAttribute(UMLClass.createAttribute(true, "Operation" + operationCounter++, model.getClassifier("void")));
-            inter.addAttribute(UMLClass.createAttribute(false, "Attribute" + operationCounter++, model.getClassifier("void")));
-            inter.addAttribute(UMLClass.createAttribute(false, "Attribute" + operationCounter++, model.getClassifier("void")));
-            inter.addAttribute(UMLClass.createAttribute(true, "Attribute" + operationCounter++, model.getClassifier("void")));
-            inter.addAttribute(UMLClass.createAttribute(true, "Attribute" + operationCounter++, model.getClassifier("void")));
-            inter.addAttribute(UMLClass.createAttribute(false, "Attributeaaaaaaaaaaaaaaaaaaaaaaaaaaaa" + operationCounter++, model.getClassifier("void")));
-            inter.addAttribute(UMLClass.createAttribute(false, "Attribute" + operationCounter++, model.getClassifier("void")));
-            new GClassElement(canvas, inter, this);
+            var createdElement = new GClassElement(canvas, (UMLClass) Templates.createClassModel(model), this);
+            gClassElementList.add(createdElement);
         });
         // interface
         ((AnchorPane) objects.get(1)).getChildren().get(0).setOnMouseClicked(ev -> {
-            int operationCounter = 1;
-            var inter = (UMLClass) ClassDiagram.createClassifier("Class" + classCounter++, true);
-            inter.addAttribute(UMLClass.createAttribute(true, "Attribute" + operationCounter++, model.getClassifier("void")));
-            new GClassElement(canvas, inter, this);
+            var createdElement = new GClassElement(canvas, (UMLClass) Templates.createInterfaceModel(model), this);
+            gClassElementList.add(createdElement);
         });
         // object
         ((AnchorPane) objects.get(2)).getChildren().get(0).setOnMouseClicked(ev -> {
-            new GClassElement(canvas, ClassDiagram.createClassifier("Class" + classCounter++, true), this);
+            var createdElement = new GClassElement(canvas, (UMLClass) Templates.createEmptyClassModel(model), this);
+            gClassElementList.add(createdElement);
         });
     }
 
@@ -128,17 +115,20 @@ public class GClassDiagram {
         });
 
         //TESTING BUTTON TO ADD ATTRIBUTE
-        Button addAttr = new Button("add attribute");
-        addAttr.setAlignment(Pos.CENTER);
-        addAttr.setMaxWidth(Double.MAX_VALUE);
-        addAttr.setStyle("-fx-background-radius: 15px");
-        addAttr.setOnAction(ev -> {
-            if (selectedElement != null)
-                selectedElement.addAttribute(new UMLAttribute("ahoj", model.getClassifier("string")));
-        });
+        // Button addAttr = new Button("add attribute");
+        // addAttr.setAlignment(Pos.CENTER);
+        // addAttr.setMaxWidth(Double.MAX_VALUE);
+        // addAttr.setStyle("-fx-background-radius: 15px");
+        // addAttr.setOnAction(ev -> {
+        //     if (selectedElement != null) {
+        //         selectedElement.addAttribute(new UMLAttribute("bar", model.getClassifier("string")));
+        //         // FIXME: testing purposes
+        //         selectedElement.getModel().setAbstract(!selectedElement.getModel().isAbstract());
+        //     }
+        // });
 
         // set margin between items in vbox
-        objectPane.getChildren().addAll(createSD, addAttr);
+        objectPane.getChildren().addAll(createSD);
         objectPane.getChildren().add(3, sep);
         VBox.setMargin(createSD, new Insets(5, 5, 5, 5));
         VBox.setVgrow(createSD, Priority.ALWAYS);
@@ -170,14 +160,26 @@ public class GClassDiagram {
         content = new HBox();
 
         // drawable canvas
+        // ScrollPane <--|
+        ScrollPane drawable = new ScrollPane();
+        drawable.setFitToHeight(true);
+        drawable.setFitToWidth(true);
+
         canvas = new AnchorPane();
-        HBox.setHgrow(canvas, Priority.ALWAYS);
+        drawable.setContent(canvas);
+        HBox.setHgrow(drawable, Priority.ALWAYS);
         canvas.setOnMouseClicked(ev -> {
             if (clickable) {
                 setSelectedElement(null);
             }
             clickable = true;
         });
+        for (var classElement : classDiagram.getClassElements()) {
+            if (!(classElement instanceof UMLClass))
+                continue;
+            var createdElement = new GClassElement(canvas, (UMLClass) classElement, this);
+            gClassElementList.add(createdElement);
+        }
         Rectangle clipRect = new Rectangle(canvas.getWidth(), canvas.getHeight());
         clipRect.heightProperty().bind(canvas.heightProperty());
         clipRect.widthProperty().bind(canvas.widthProperty());
@@ -202,7 +204,7 @@ public class GClassDiagram {
         createLeftMenu(leftPane, rootTab);
 
         // right menu with selected class
-        content.getChildren().addAll(leftPane, canvas);
+        content.getChildren().addAll(leftPane, drawable);
 
         // event to delete selected class element with DELETE
         rootTab.setOnKeyPressed(ev -> {
@@ -211,12 +213,12 @@ public class GClassDiagram {
                 if (selectedElement != null && deleteFlag) {
                     model.removeClassElement(selectedElement.getModel());
                     canvas.getChildren().remove(selectedElement.getBaseLayout());
+                    gClassElementList.remove(selectedElement);
                     setSelectedElement(null);
                 }
             }
         });
 
-        // TODO: rozlozeni
         tab.setContent(content);
         rootTab.getTabs().add(tab);
     }
@@ -241,5 +243,30 @@ public class GClassDiagram {
         }
     }
 
+    public GClassElement getClassElement(UMLClass classElement) {
+        return gClassElementList.stream()
+                .filter(x -> x.getModel() == classElement)
+                .findFirst().orElse(null);
+    }
+
+    public Pane getCanvas() {
+        return canvas;
+    }
+
+    public void addRelation(GRelation relation) {
+        gRelationsList.add(relation);
+    }
+
+    public GRelation getRelation(UMLClass src, UMLClass dest) {
+        return gRelationsList.stream()
+                .filter(x -> (x.getModel1().getModel() == src && x.getModel2().getModel() == dest) ||
+                        (x.getModel1().getModel() == dest && x.getModel2().getModel() == src))
+                .findFirst().orElse(null);
+    }
+
+    public boolean removeRelation(GRelation relation) {
+        gRelationsList.remove(relation);
+        return canvas.getChildren().remove(relation.getBaseStructure());
+    }
     // TODO: command undo-redo
 }
