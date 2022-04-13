@@ -1,11 +1,15 @@
 package ija.umleditor.models;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
 import java.util.Objects;
 
 public class UMLAttribute extends Element {
 
     protected String visibility;
     protected UMLClassifier type;
+    protected StringProperty toStringProperty = new SimpleStringProperty();
 
     /**
      * Class {@code UMLAttribute} constructor
@@ -16,6 +20,28 @@ public class UMLAttribute extends Element {
         super(name);
         this.type = type;
         visibility = "";
+        toStringProperty.set(visibility + type.getName() + " " + name);
+    }
+
+    /**
+     * Updates attributes name
+     * @param name Element's name
+     */
+    public void setName(String name) {
+        super.setName(name);
+        toStringProperty.set(visibility + type.getName() + " " + name);
+    }
+
+    public StringProperty getToStringProperty() {
+        return toStringProperty;
+    }
+
+    protected void updateName() {
+        toStringProperty.set(visibility + type.getName() + " " + getName());
+    }
+
+    protected void setToStringName(String value) {
+        toStringProperty.set(value);
     }
 
     /**
@@ -37,6 +63,7 @@ public class UMLAttribute extends Element {
         } else {
             this.visibility = visibility + " ";
         }
+        updateName();
     }
 
     /**
@@ -53,10 +80,11 @@ public class UMLAttribute extends Element {
      */
     public void setType(UMLClassifier type) {
         this.type = type;
+        updateName();
     }
 
     @Override
     public String toString() {
-        return visibility + type.getName() + " " + name;
+        return visibility + type.getName() + " " + getName();
     }
 }

@@ -1,12 +1,20 @@
 package ija.umleditor.models;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class UMLClass extends UMLClassifier {
 
-    protected boolean isAbstract;
+    private int attributeCounter = 1;
+    private int operationCounter = 1;
+    private final BooleanProperty abstractProperty = new SimpleBooleanProperty(false);
+    private final StringProperty stereotypeProperty = new SimpleStringProperty();
     protected List<UMLAttribute> attributes;
     protected Set<UMLRelation> relations = new HashSet<>();
     protected Set<UMLClass> parentClasses = new HashSet<>();
@@ -17,8 +25,29 @@ public class UMLClass extends UMLClassifier {
      */
     public UMLClass(String name) {
         super(name, true);
-        isAbstract = false;
         attributes = new ArrayList<>();
+    }
+    public int getAttributeCounter() {
+        return attributeCounter++;
+    }
+
+    public int getOperationCounter() {
+        return operationCounter++;
+    }
+
+    public String getStereotype() {
+        return stereotypeProperty.get();
+    }
+
+    public void setStereotype(String stereotype) {
+        stereotypeProperty.set(stereotype);
+    }
+
+    public BooleanProperty getAbstractProperty() {
+        return abstractProperty;
+    }
+    public StringProperty getStereotypeProperty() {
+        return stereotypeProperty;
     }
 
     /**
@@ -28,8 +57,9 @@ public class UMLClass extends UMLClassifier {
      */
     public UMLClass(String name, UMLAttribute...memberFields) {
         super(name);
-        isAbstract = false;
         this.attributes.addAll(List.of(memberFields));
+        attributeCounter += memberFields.length;
+        operationCounter += memberFields.length;
     }
 
     /**
@@ -37,7 +67,7 @@ public class UMLClass extends UMLClassifier {
      * @return true if class is abstract; false otherwise
      */
     public boolean isAbstract() {
-        return isAbstract;
+        return abstractProperty.get();
     }
 
     /**
@@ -45,7 +75,7 @@ public class UMLClass extends UMLClassifier {
      * @param anAbstract New abstract status
      */
     public void setAbstract(boolean anAbstract) {
-        isAbstract = anAbstract;
+        abstractProperty.set(anAbstract);
     }
 
     /**
@@ -97,12 +127,13 @@ public class UMLClass extends UMLClassifier {
     public boolean addAttribute(UMLAttribute attr) {
         // search for attribute with identical name
         UMLAttribute attribute = attributes.stream()
-                .filter(x -> Objects.equals(x.name, attr.name))
+                .filter(x -> Objects.equals(x.getName(), attr.getName()))
                 .findFirst().orElse(null);
 
         // nothing found
-        if (attribute == null)
+        if (attribute == null) {
             return attributes.add(attr);
+        }
         return false;
     }
 
@@ -115,7 +146,7 @@ public class UMLClass extends UMLClassifier {
     public UMLAttribute addOrReplaceAttribute(UMLAttribute attr) {
         // search for attribute with identical name
         UMLAttribute attribute = attributes.stream()
-                .filter(x -> Objects.equals(x.name, attr.name))
+                .filter(x -> Objects.equals(x.getName(), attr.getName()))
                 .findFirst().orElse(null);
 
         attributes.add(attr);
@@ -132,13 +163,13 @@ public class UMLClass extends UMLClassifier {
      */
     public UMLAttribute getAttribute(String name) {
         return attributes.stream()
-                .filter(x -> Objects.equals(x.name, name))
+                .filter(x -> Objects.equals(x.getName(), name))
                 .findFirst().orElse(null);
     }
 
     /**
      * Returns collection of all callable operations.
-     * Collection contains operation of this class and operations that it inhereted from the base classes.
+     * Collection contains operation of this class and operations that it inherited from the base classes.
      * @return Collection of available operations
      */
     public List<UMLOperation> getOperations() {
@@ -190,6 +221,32 @@ public class UMLClass extends UMLClassifier {
         return true;
     }
 
+    public boolean updateAttributeName(UMLAttribute attr, String newName) {
+        // given attribute exists in the class
+        if (!attributes.contains(attr))
+            return false;
+
+        // class doesn't contain attribute with "newName"
+        if (getAttribute(newName) != null)
+            return false;
+
+        attr.setName(newName);
+        return true;
+    }
+
+    public boolean updateAttributeName(String oldName, String newName) {
+        // given attribute exists in the class
+        UMLAttribute oldAttr = getAttribute(oldName);
+        // class doesn't contain attribute with "newName"
+        UMLAttribute newAttr = getAttribute(newName);
+
+        if (oldAttr != null && newAttr == null) {
+            oldAttr.setName(newName);
+            return true;
+        }
+        return false;
+    }
+
     /**
      * Removes attribute by a given name from the class.
      * @param name Attribute's name
@@ -197,7 +254,7 @@ public class UMLClass extends UMLClassifier {
      */
     public UMLAttribute removeAttribute(String name) {
         UMLAttribute attr = attributes.stream()
-                .filter(x -> Objects.equals(x.name, name))
+                .filter(x -> Objects.equals(x.getName(), name))
                 .findFirst().orElse(null);
         attributes.remove(attr);
         return attr;
@@ -241,8 +298,7 @@ public class UMLClass extends UMLClassifier {
     public boolean addRelation(UMLClass dest, RelationType type) {
         UMLRelation relation = new UMLRelation(this, dest);
         relation.setRelationType(type);
-        relation.setRelationDependency();
-        return relations.add(relation);
+        return relation.setRelationDependency();
     }
 
     /**

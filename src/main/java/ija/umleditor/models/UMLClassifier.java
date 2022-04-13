@@ -30,4 +30,12 @@ public class UMLClassifier extends Element {
     public boolean isUserDefined() {
         return isUserDefined;
     }
+
+    /**
+     * Sets new classifier name
+     * @param name Element's name
+     */
+    public void setName(String name) {
+        super.setName(name);
+    }
 }

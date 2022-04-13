@@ -1,14 +1,21 @@
 package ija.umleditor.models;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
 public class Element {
-    protected String name;
+    protected StringProperty nameProperty = new SimpleStringProperty();
 
     /**
      * Class Element constructor
      * @param name Element's name
      */
     public Element(String name) {
-        this.name = name;
+        nameProperty = new SimpleStringProperty(name);
+    }
+
+    public StringProperty getNameProperty() {
+        return nameProperty;
     }
 
     /**
@@ -16,7 +23,7 @@ public class Element {
      * @return Element's name
      */
     public String getName() {
-        return name;
+        return nameProperty.get();
     }
 
     /**
@@ -24,6 +31,6 @@ public class Element {
      * @param name Element's name
      */
     protected void setName(String name) {
-        this.name = name;
+        nameProperty.set(name);
     }
 }

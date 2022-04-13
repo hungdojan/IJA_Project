@@ -95,7 +95,7 @@ public class ClassDiagram extends Element {
     public boolean addClassifier(UMLClassifier classifier) {
         // search for classifier with identical name
         UMLClassifier c = classElements.stream()
-                .filter(x -> Objects.equals(x.name, classifier.name))
+                .filter(x -> Objects.equals(x.getName(), classifier.getName()))
                 .findFirst().orElse(null);
 
         // no classifier with identical name found
@@ -114,7 +114,7 @@ public class ClassDiagram extends Element {
     public UMLClassifier addOrReplaceClassifier(UMLClassifier classifier) {
         // search for classifier with identical name
         UMLClassifier c = classElements.stream()
-                .filter(x -> Objects.equals(x.name, classifier.name))
+                .filter(x -> Objects.equals(x.getName(), classifier.getName()))
                 .findFirst().orElse(null);
 
         classElements.add(classifier);
@@ -182,7 +182,7 @@ public class ClassDiagram extends Element {
      */
     public UMLClassifier getClassifier(String name) {
         return classElements.stream()
-                .filter(x -> Objects.equals(x.name, name))
+                .filter(x -> Objects.equals(x.getName(), name))
                 .findFirst().orElse(null);
     }
 
@@ -194,7 +194,7 @@ public class ClassDiagram extends Element {
     public UMLClass getClass(String name) {
         // search for class with identical name
         return (UMLClass) classElements.stream()
-                .filter(x -> Objects.equals(x.name, name) && x instanceof UMLClass)
+                .filter(x -> Objects.equals(x.getName(), name) && x instanceof UMLClass)
                 .findFirst().orElse(null);
     }
 
@@ -212,7 +212,7 @@ public class ClassDiagram extends Element {
     public boolean removeClassElement(String name) {
         // search for classifier with identical name
         UMLClassifier classifier = classElements.stream()
-                .filter(x -> Objects.equals(x.name, name))
+                .filter(x -> Objects.equals(x.getName(), name))
                 .findFirst().orElse(null);
 
         // remove all relations of the class
@@ -246,7 +246,7 @@ public class ClassDiagram extends Element {
     public SequenceDiagram addSequenceDiagram(String name) {
         // search for sequence diagram with identical name
         SequenceDiagram sd = sequenceDiagrams.stream()
-                .filter(x -> Objects.equals(x.name, name))
+                .filter(x -> Objects.equals(x.getName(), name))
                 .findFirst().orElse(null);
 
         // no diagram was found
@@ -266,7 +266,7 @@ public class ClassDiagram extends Element {
     public SequenceDiagram removeSequenceDiagram(String name) {
         // search for sequence diagram with identical name
         SequenceDiagram sd = sequenceDiagrams.stream()
-                .filter(x -> Objects.equals(x.name, name))
+                .filter(x -> Objects.equals(x.getName(), name))
                 .findFirst().orElse(null);
 
         sequenceDiagrams.remove(sd);

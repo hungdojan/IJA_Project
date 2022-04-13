@@ -1,12 +1,30 @@
 package ija.umleditor.models;
 
+import javafx.beans.property.StringProperty;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class UMLOperation extends UMLAttribute {
 
     private final List<UMLAttribute> operationParameters;
+    private static int parameterCounter = 1;
 
+    public static int getParameterCounter() {
+        return parameterCounter++;
+    }
+
+    @Override
+    public void setName(String name) {
+        super.setName(name);
+        updateName();
+    }
+    @Override
+    protected void updateName() {
+        toStringProperty.set(visibility + type.getName() + " " + getName() + "(" +
+                operationParameters.stream().map(UMLAttribute::toString).collect(Collectors.joining(", ")) +
+                ")");
+    }
     /**
      * Class {@code UMLOperation} constructor
      * @param name Name of the operation
@@ -18,9 +36,10 @@ public class UMLOperation extends UMLAttribute {
         operationParameters = new ArrayList<>();
         for (var item : args) {
             // remove visibility of operation parameters
-            item.visibility = null;
+            item.visibility = "";
             addParameters(item);
         }
+        updateName();
     }
 
     /**
@@ -41,14 +60,16 @@ public class UMLOperation extends UMLAttribute {
     public boolean addParameters(UMLAttribute parameter) {
         // search for parameter with similar name
         UMLAttribute attribute = operationParameters.stream()
-                .filter(x -> Objects.equals(x.name, parameter.name))
+                .filter(x -> Objects.equals(x.getName(), parameter.getName()))
                 .findFirst().orElse(null);
 
+        boolean result = false;
         // no duplicates found
         if (attribute == null) {
             // remove visibility of parameter
-            parameter.visibility = null;
-            return operationParameters.add(parameter);
+            parameter.visibility = "";
+            result = operationParameters.add(parameter);
+            updateName();
         }
         return false;
     }
@@ -64,15 +85,16 @@ public class UMLOperation extends UMLAttribute {
     public UMLAttribute addOrReplaceParameters(UMLAttribute parameter) {
         // search for parameter with similar name
         UMLAttribute attribute = operationParameters.stream()
-                .filter(x -> Objects.equals(x.name, parameter.name))
+                .filter(x -> Objects.equals(x.getName(), parameter.getName()))
                 .findFirst().orElse(null);
 
         // remove visibility of parameter
-        parameter.visibility = null;
+        parameter.visibility = "";
         operationParameters.add(parameter);
         if (attribute != null) {
             operationParameters.remove(parameter);
         }
+        updateName();
         return attribute;
     }
 
@@ -83,7 +105,7 @@ public class UMLOperation extends UMLAttribute {
      */
     public UMLAttribute getParameterByName(String name) {
         return operationParameters.stream()
-                .filter(x -> Objects.equals(x.name, name))
+                .filter(x -> Objects.equals(x.getName(), name))
                 .findFirst().orElse(null);
     }
 
@@ -94,18 +116,36 @@ public class UMLOperation extends UMLAttribute {
      */
     public boolean removeParameter(String name) {
         UMLAttribute parameter = operationParameters.stream()
-                .filter(x -> Objects.equals(x.name, name))
+                .filter(x -> Objects.equals(x.getName(), name))
                 .findFirst().orElse(null);
-        return operationParameters.remove(parameter);
+        boolean result = operationParameters.remove(parameter);
+        updateName();
+        return result;
     }
 
+    public void update() {
+        updateName();
+    }
+
+    public boolean updateParameter(String oldName, String newName) {
+        UMLAttribute oldParam = getParameterByName(oldName);
+        UMLAttribute newParam = getParameterByName(newName);
+        if (oldParam != null && newParam == null) {
+            oldParam.setName(newName);
+            updateName();
+            return true;
+        }
+        return false;
+    }
     /**
      * Removes instance of parameter from the operation
      * @param parameter Instance of parameter
      * @return true if successfully removed; false otherwise
      */
     public boolean removeParameter(UMLAttribute parameter) {
-        return operationParameters.remove(parameter);
+        boolean result = operationParameters.remove(parameter);
+        updateName();
+        return result;
     }
 
     /**
@@ -113,11 +153,12 @@ public class UMLOperation extends UMLAttribute {
      */
     public void clearParameters() {
         operationParameters.clear();
+        updateName();
     }
 
     @Override
     public String toString() {
-        return visibility + type.getName() + " " + name + "(" +
+        return visibility + type.getName() + " " + getName() + "(" +
                operationParameters.stream().map(UMLAttribute::toString).collect(Collectors.joining(", ")) +
                 ")";
     }
