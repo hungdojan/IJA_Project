@@ -2,6 +2,8 @@ package ija.umleditor.controllers;
 
 import ija.umleditor.models.*;
 import ija.umleditor.template.Templates;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -37,6 +39,7 @@ public class RightMenu {
         VBox.setVgrow(attributeTP, Priority.ALWAYS);
         VBox attributesVBox = new VBox();
         Button addParamButton = new Button("Add parameter");
+        addParamButton.setMaxWidth(Double.MAX_VALUE);
         addParamButton.setAlignment(Pos.CENTER);
         addParamButton.setStyle("-fx-background-radius: 15px");
 
@@ -132,10 +135,18 @@ public class RightMenu {
         return attributeTP;
     }
 
-    private HBox createAttributeHBox(UMLAttribute item, TitledPane listOTitledPane) {
+    /**
+     * Creates attribute box with its visibility, type, name and delete button. 
+     * @param item Instance of UMLAttribute
+     * @param parameterTitledPane TitlePane containing parameters of operation
+     * @param setVisibility If anything other than parameter
+     * @return
+     */
+    private HBox createAttributeHBox(UMLAttribute item, TitledPane parameterTitledPane, boolean setVisibility) {
         TextField typeField = new TextField(item.getType().getName());
         TextField textField = new TextField(item.getName());
         Button deleteButton = new Button("Delete");
+        deleteButton.setMinWidth(65);
         HBox editBox = createHBox(typeField, textField, deleteButton);
         HBox.setHgrow(textField, Priority.ALWAYS);
         // remove attribute event
@@ -240,7 +251,6 @@ public class RightMenu {
                 baseElement.getModel().removeRelationWithClass(relationClass);
                 baseElement.getOwner().removeRelation(baseElement.getOwner().getRelation(baseElement.getModel(), relationClass));
                 relationsVBox.getChildren().remove(relationHBox);
-                // TODO: remove gRelation from the canvas
             });
             ClassDiagram baseClassDiagram = baseElement.getOwner().getModel();
             if (baseElement.getOwner().getRelation((UMLClass) item.getSrc(), (UMLClass) item.getDest()) == null) {
@@ -252,6 +262,7 @@ public class RightMenu {
 
         Button addRelationButton = new Button("Add relation");
         addRelationButton.setAlignment(Pos.CENTER);
+        addRelationButton.setMaxWidth(Double.MAX_VALUE);
         addRelationButton.setStyle("-fx-background-radius: 15px");
         addRelationButton.setOnAction(ev -> {
             // create a constraint so that user can only add max one new relations
@@ -264,7 +275,6 @@ public class RightMenu {
                     return;
             }
             HBox relationHBox = new HBox();
-//            TextField srcField = new TextField();
             TextField destField = new TextField();
             Button deleteRelationButton = new Button("Delete");
             destField.setOnAction(e -> {
@@ -292,6 +302,8 @@ public class RightMenu {
                 // TODO: remove gRelation from the canvas
             });
             relationHBox.getChildren().addAll(destField, deleteRelationButton);
+            relationHBox.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(destField, Priority.ALWAYS);
             relationsVBox.getChildren().add(relationsVBox.getChildren().size()-1, relationHBox);
         });
 
@@ -333,6 +345,7 @@ public class RightMenu {
         // add attribute button
         Button addAttrButton = new Button("Add attribute");
         addAttrButton.setAlignment(Pos.CENTER);
+        addAttrButton.setMaxWidth(Double.MAX_VALUE);
         addAttrButton.setStyle("-fx-background-radius: 15px");
         // button event that adds new event
         addAttrButton.setOnAction(ev -> {
@@ -369,6 +382,7 @@ public class RightMenu {
         // add operation button
         Button addOpButton = new Button("Add operation");
         addOpButton.setAlignment(Pos.CENTER);
+        addOpButton.setMaxWidth(Double.MAX_VALUE);
         addOpButton.setStyle("-fx-background-radius: 15px");
         addOpButton.setOnAction(ev -> {
             UMLOperation attr = Templates.createOperation(baseElement.getModel(), baseElement.getOwner().getModel());
@@ -496,15 +510,21 @@ public class RightMenu {
 
         // add first row to grid
         nameGrid.add(stereotype, 0, 1);
-        nameGrid.add(stereotypeField, 0, 2);
+        nameGrid.add(stereotypeField, 0, 2, 2, 1);
 
         // add third row to grid
         nameGrid.add(name, 0, 3);
-        nameGrid.add(nameField, 0, 4);
+        nameGrid.add(nameField, 0, 4, 2, 1);
+
+        nameGrid.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(nameGrid, Priority.ALWAYS);
         return nameGrid;
     }
 
-
+    /**
+     * Removes right menu
+     * @param root Pane to be removed
+     */
     public void remove(Pane root) {
         root.getChildren().remove(base);
     }
