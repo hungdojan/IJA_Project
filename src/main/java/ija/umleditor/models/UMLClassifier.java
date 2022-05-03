@@ -68,6 +68,7 @@ public class UMLClassifier extends Element implements ISubject {
      */
     public void setName(String name) {
         super.setName(name);
+        notify("UPDATE");
     }
 
     @Override

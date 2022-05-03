@@ -1,3 +1,14 @@
+/**
+ * @brief Creates class diagram.
+ * HBox layout contains left menu with class templates, canvas to draw the diagram on and right menu to edit elements.
+ *
+ * This source code serves as submission for semester assignment of class IJA at FIT, BUT 2021/22.
+ *
+ * @file GClassDiagram.java
+ * @date 03/05/2022
+ * @authors Hung Do      (xdohun00)
+ *          Petr Kolarik (xkolar79)
+ */
 package ija.umleditor.controllers;
 
 import ija.umleditor.models.*;
@@ -39,6 +50,10 @@ public class GClassDiagram {
     // user is in current diagram's tab and selected element can be deleted
     private boolean deleteFlag = true;
 
+    /**
+     * Gets model of type ClassDiagram
+     * @return model
+     */
     public ClassDiagram getModel() {
         return model;
     }
@@ -116,25 +131,10 @@ public class GClassDiagram {
         createSD.setStyle("-fx-background-radius: 15px");
         createSD.setOnMouseClicked(ev -> {
             // TODO: init with model
-            try {
-                new GSequenceDiagram(rootTab, new SequenceDiagram("test"));
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
-            }
+            var sequenceDiagram = Templates.createSequenceDiagram(model);
+            var qSequenceDiagram = new GSequenceDiagram(rootTab, sequenceDiagram, this);
+            gSequenceDiagramList.add(qSequenceDiagram);
         });
-
-        //TESTING BUTTON TO ADD ATTRIBUTE
-        // Button addAttr = new Button("add attribute");
-        // addAttr.setAlignment(Pos.CENTER);
-        // addAttr.setMaxWidth(Double.MAX_VALUE);
-        // addAttr.setStyle("-fx-background-radius: 15px");
-        // addAttr.setOnAction(ev -> {
-        //     if (selectedElement != null) {
-        //         selectedElement.addAttribute(new UMLAttribute("bar", model.getClassifier("string")));
-        //         // FIXME: testing purposes
-        //         selectedElement.getModel().setAbstract(!selectedElement.getModel().isAbstract());
-        //     }
-        // });
 
         // set margin between items in vbox
         objectPane.getChildren().addAll(createSD);
@@ -214,20 +214,6 @@ public class GClassDiagram {
         clipRect.heightProperty().bind(canvas.heightProperty());
         clipRect.widthProperty().bind(canvas.widthProperty());
         canvas.setClip(clipRect);
-        // TODO: testing pane movement
-        // canvas.setStyle("-fx-background-color: #dedede");
-        // canvas.setOnMousePressed(ev -> {
-        //     mousePanePosX = ev.getX();
-        //     mousePanePosY = ev.getY();
-        // });
-        // canvas.setOnMouseDragged(ev -> {
-        //     // TODO: move with group
-        //     clickable = false;
-        //     canvas.setTranslateX(canvas.getTranslateX() + ev.getX() - mousePanePosX);
-        //     canvas.setTranslateY(canvas.getTranslateY() + ev.getY() - mousePanePosY);
-        // });
-        // set clip
-        // TODO: end of testing
 
         // left panel with objects to create
         AnchorPane leftPane = new AnchorPane();
@@ -306,18 +292,36 @@ public class GClassDiagram {
                 .findFirst().orElse(null);
     }
 
+    /**
+     * Gets canvas.
+     * @return Instance of canvas
+     */
     public Pane getCanvas() {
         return canvas;
     }
 
+    /**
+     * Adds created relation to gRelationsList.
+     * @param relation Instance of GRelation
+     */
     public void addRelation(GRelation relation) {
         gRelationsList.add(relation);
     }
 
+    /**
+     * Gets instance of CommandBuilder.
+     * @return Instance of CommandBuilder
+     */
     public CommandBuilder getCommandBuilder() {
         return commandBuilder;
     }
 
+    /**
+     * Gets relation between two instances of UMLClass.
+     * @param src Starting instance of UMLClass
+     * @param dest Ending instance of UMLClass
+     * @return Instance of GRelation
+     */
     public GRelation getRelation(UMLClass src, UMLClass dest) {
         return gRelationsList.stream()
                 .filter(x -> (x.getModel1().getModel() == src && x.getModel2().getModel() == dest) ||
@@ -325,6 +329,11 @@ public class GClassDiagram {
                 .findFirst().orElse(null);
     }
 
+    /**
+     * Removes relation from gRelationsList and from cavnas.
+     * @param relation Instance of GRelation to be removed
+     * @return If removal was successful
+     */
     public boolean removeRelation(GRelation relation) {
         gRelationsList.remove(relation);
         return canvas.getChildren().remove(relation.getBaseStructure());

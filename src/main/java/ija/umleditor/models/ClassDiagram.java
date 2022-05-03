@@ -1,3 +1,17 @@
+/**
+* @brief Declaration of UMLClass class.
+* UMLClass represents abstract structure of user-defined class in the class diagram. It contains attributes and
+* operations that objects from this class can use in sequence diagram. Class can be set as abstract meaning
+* sequence diagrams cannot create object from this class. Class can derive from other classes or form other types
+* of relations between them.
+*
+* This source code serves as submission for semester assignment of class IJA at FIT, BUT 2021/22.
+*
+* @file ClassDiagram.java
+* @date 03/05/2022
+* @authors Hung Do      (xdohun00)
+*          Petr Kolarik (xkolar79)
+*/
 package ija.umleditor.models;
 
 import org.json.JSONArray;
@@ -20,6 +34,7 @@ public class ClassDiagram extends Element {
     public ClassDiagram() {
         super("");
         classElements = new ArrayList<>();
+        sequenceDiagrams = new ArrayList<>();
     }
 
     /**
@@ -29,6 +44,7 @@ public class ClassDiagram extends Element {
     public ClassDiagram(String name) {
         super(name);
         classElements = new ArrayList<>();
+        sequenceDiagrams = new ArrayList<>();
     }
 
     /**
@@ -268,13 +284,27 @@ public class ClassDiagram extends Element {
         return sd;
     }
 
+    /**
+     * Adds sequence diagram into the class diagram
+     * @param sd Sequence diagram to be inserted
+     * @return Whether diagram insertion ended successfully.
+     */
     public boolean addSequenceDiagram(SequenceDiagram sd) {
-        // TODO:
-        return false;
+        if (sd == null)
+            return false;
+        if (sequenceDiagrams.contains(sd))
+            return false;
+        return sequenceDiagrams.add(sd);
     }
 
+    /**
+     * Returns instance of sequence diagram in class diagram.
+     * @param name Sequence diagram's name.
+     * @return Found instance, nullptr if not.
+     */
     public SequenceDiagram getSequenceDiagram(String name) {
-        return null;
+        return sequenceDiagrams.stream().filter(x -> Objects.equals(x.getName(), name))
+                .findFirst().orElse(null);
     }
 
     /**
@@ -283,7 +313,8 @@ public class ClassDiagram extends Element {
      * @param diagrams Indefinite number of sequence diagrams.
      */
     public void addSequenceDiagrams(SequenceDiagram... diagrams) {
-
+        for (var sd : diagrams)
+            addSequenceDiagram(sd);
     }
 
     /**
@@ -319,6 +350,9 @@ public class ClassDiagram extends Element {
     }
 
     @Override
+    /**
+     * Creates JSON representation of element's content.
+     */
     public JSONObject createJsonObject() {
         JSONObject object = new JSONObject();
         object.put("_class", "ClassDiagram");
@@ -338,20 +372,20 @@ public class ClassDiagram extends Element {
         object.put("classElements", jsonClassifiers);
 
         // add sequence diagrams
-        // JSONArray jsonSequenceDiagrams = new JSONArray();
-        // for (var sequenceDiagram : sequenceDiagrams) {
-        //     var jsonSequenceDiagram = sequenceDiagram.createJsonObject();
-        //     jsonSequenceDiagrams.put(jsonSequenceDiagram);
-        // }
-        // object.append("sequenceDiagrams", jsonSequenceDiagrams);
+        JSONArray jsonSequenceDiagrams = new JSONArray();
+        for (var sequenceDiagram : sequenceDiagrams) {
+            var jsonSequenceDiagram = sequenceDiagram.createJsonObject();
+            jsonSequenceDiagrams.put(jsonSequenceDiagram);
+        }
+        object.put("sequenceDiagrams", jsonSequenceDiagrams);
 
-        // // add relations
-        // JSONArray jsonRelations = new JSONArray();
-        // for (var relation : setOfRelations) {
-        //     var jsonRelation = relation.createJsonObject();
-        //     jsonRelations.put(jsonRelation);
-        // }
-        // object.append("relations", jsonRelations);
+        // add relations
+        JSONArray jsonRelations = new JSONArray();
+        for (var relation : setOfRelations) {
+            var jsonRelation = relation.createJsonObject();
+            jsonRelations.put(jsonRelation);
+        }
+        object.put("relations", jsonRelations);
         return object;
     }
 }

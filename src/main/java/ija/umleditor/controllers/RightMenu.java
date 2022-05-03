@@ -1,3 +1,14 @@
+/**
+ * @brief Creates right menu if element is selected.
+ * Displays name, attributes, operations and relations of selected element.
+ *
+ * This source code serves as submission for semester assignment of class IJA at FIT, BUT 2021/22.
+ *
+ * @file RightMenu.java
+ * @date 03/05/2022
+ * @authors Hung Do      (xdohun00)
+ *          Petr Kolarik (xkolar79)
+ */
 package ija.umleditor.controllers;
 
 import ija.umleditor.models.*;
@@ -8,6 +19,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.text.Text;
 
 import java.util.List;
 import java.util.Objects;
@@ -44,14 +56,20 @@ public class RightMenu {
         addParamButton.setStyle("-fx-background-radius: 15px");
 
         for (var item : operation.getOperationParameters()) {
-            var itemHBox = createAttributeHBox(item, null);
-            ((Button) itemHBox.getChildren().get(2)).setOnAction(e -> {
+            var itemHBox = createAttributeHBox(item, null, true);
+            var deleteButton = (Button) itemHBox.getChildren().get(2);
+            var typeField = (TextField) itemHBox.getChildren().get(0);
+            var nameField = (TextField) itemHBox.getChildren().get(1);
+            item.parent = operation; // assign parent operation to notify parent operation when name is updated
+            // delete button action
+            deleteButton.setOnAction(e -> {
                 // TODO: remove boxes when empty
                 operation.removeParameter(item);
                 operation.update();
                 attributesVBox.getChildren().remove(itemHBox);
             });
-            ((TextField) itemHBox.getChildren().get(0)).setOnAction(e -> {
+            // parameter type text field
+            typeField.setOnAction(e -> {
                 if (((TextField) itemHBox.getChildren().get(0)).getText().isBlank()) {
                     // TODO: alert
                     Alert warning = new Alert(Alert.AlertType.WARNING);
@@ -60,12 +78,19 @@ public class RightMenu {
                     warning.show();
                     return;
                 }
+                var type = baseElement.getOwner().getModel().getClassifier(typeField.getText());
+                if (type == null) {
+                    type = ClassDiagram.createClassifier(typeField.getText(), false);
+                    baseElement.getOwner().getModel().addClassifier(type);
+                }
+                item.setType(type);
                 // FIXME: operator is not updating
-                item.setType(new UMLClassifier(((TextField) itemHBox.getChildren().get(0)).getText()));
+                // item.setType(new UMLClassifier(((TextField) itemHBox.getChildren().get(0)).getText()));
                 // updates to string value
                 operation.update();
             });
-            ((TextField) itemHBox.getChildren().get(1)).setOnAction(e -> {
+            // parameter name text field
+            nameField.setOnAction(e -> {
                 if (((TextField) itemHBox.getChildren().get(1)).getText().isBlank()) {
                     // TODO: alert
                     Alert warning = new Alert(Alert.AlertType.WARNING);
@@ -86,17 +111,22 @@ public class RightMenu {
         attributesVBox.getChildren().add(addParamButton);
         addParamButton.setOnAction(ev -> {
             UMLAttribute newAttr = Templates.createParameter(operation, baseElement.getOwner().getModel());
-            HBox attrItemHBox = createAttributeHBox(newAttr, null);
+            newAttr.parent = operation; // assign parent operation to notify parent operation when name is updated
+            HBox attrItemHBox = createAttributeHBox(newAttr, null, false);
+            var deleteButton = (Button) attrItemHBox.getChildren().get(2);
+            var typeField = (TextField) attrItemHBox.getChildren().get(0);
+            var nameField = (TextField) attrItemHBox.getChildren().get(1);
             attributesVBox.getChildren().add(attributesVBox.getChildren().size()-1, attrItemHBox);
             operation.addParameter(newAttr);
 
-            ((Button) attrItemHBox.getChildren().get(2)).setOnAction(e -> {
+            deleteButton.setOnAction(e -> {
                 // TODO: remove boxes when empty
                 operation.removeParameter(newAttr);
                 operation.update();
                 attributesVBox.getChildren().remove(attrItemHBox);
             });
-            ((TextField) attrItemHBox.getChildren().get(0)).setOnAction(e -> {
+            // typeField.textProperty().bind(operation.getType().getNameProperty());
+            typeField.setOnAction(e -> {
                 if (((TextField) attrItemHBox.getChildren().get(0)).getText().isBlank()) {
                     // TODO: alert
                     Alert warning = new Alert(Alert.AlertType.WARNING);
@@ -106,11 +136,21 @@ public class RightMenu {
                     return;
                 }
                 // FIXME: operator is not updating
-                newAttr.setType(new UMLClassifier(((TextField) attrItemHBox.getChildren().get(0)).getText()));
+                // newAttr.setType(new UMLClassifier(((TextField) attrItemHBox.getChildren().get(0)).getText()));
+                // // updates to string value
+                // operation.update();
+                var type = baseElement.getOwner().getModel().getClassifier(typeField.getText());
+                if (type == null) {
+                    type = ClassDiagram.createClassifier(typeField.getText(), false);
+                    baseElement.getOwner().getModel().addClassifier(type);
+                }
+                newAttr.setType(type);
+                // FIXME: operator is not updating
+                // item.setType(new UMLClassifier(((TextField) itemHBox.getChildren().get(0)).getText()));
                 // updates to string value
                 operation.update();
             });
-            ((TextField) attrItemHBox.getChildren().get(1)).setOnAction(e -> {
+            nameField.setOnAction(e -> {
                 if (((TextField) attrItemHBox.getChildren().get(1)).getText().isBlank()) {
                     // TODO: alert
                     Alert warning = new Alert(Alert.AlertType.WARNING);
@@ -148,6 +188,22 @@ public class RightMenu {
         Button deleteButton = new Button("Delete");
         deleteButton.setMinWidth(65);
         HBox editBox = createHBox(typeField, textField, deleteButton);
+        if (setVisibility) {
+            ObservableList<Character> options =
+                    FXCollections.observableArrayList(
+                            '+',
+                            '-',
+                            '~',
+                            '#'
+                    );
+            ComboBox visibilityCB = new ComboBox(options);
+            visibilityCB.setValue(options.stream().filter(x -> item.getVisibility() == x.charValue()).findFirst().orElse(options.get(0)));
+            visibilityCB.setMinWidth(60);
+            visibilityCB.setOnAction(ev -> {
+                item.setVisibility((Character) visibilityCB.getValue());
+            });
+            editBox.getChildren().add(0, visibilityCB);
+        }
         HBox.setHgrow(textField, Priority.ALWAYS);
         // remove attribute event
         deleteButton.setOnAction(ev -> {
@@ -158,8 +214,8 @@ public class RightMenu {
             } else {
                 attributesBox.getChildren().remove(editBox);
             }
-            if (listOTitledPane != null) {
-                ((VBox) listOTitledPane.getParent()).getChildren().remove(listOTitledPane);
+            if (parameterTitledPane != null) {
+                ((VBox) parameterTitledPane.getParent()).getChildren().remove(parameterTitledPane);
             }
         });
         // set model type
@@ -315,6 +371,10 @@ public class RightMenu {
         root.getChildren().add(base);
     }
 
+    /**
+     * Creates part of right menu containing attributes and operations
+     * @param baseElement Selected instance of GClassElement
+     */
     private void createAttributeOperationTitledPanes(GClassElement baseElement) {
         // attributes layout
         TitledPane attributeTP = new TitledPane();
@@ -334,10 +394,10 @@ public class RightMenu {
         for (var item : lofAttributes) {
             if (item instanceof UMLOperation) {
                 TitledPane listOfAttributesPane = createAttributeTitledPane((UMLOperation) item);
-                HBox editBox = createAttributeHBox(item, listOfAttributesPane);
+                HBox editBox = createAttributeHBox(item, listOfAttributesPane, true);
                 operationsBox.getChildren().addAll(editBox, listOfAttributesPane);
             } else {
-                HBox editBox = createAttributeHBox(item, null);
+                HBox editBox = createAttributeHBox(item, null, true);
                 attributesBox.getChildren().add(editBox);
             }
         }
@@ -354,7 +414,7 @@ public class RightMenu {
             if (baseElement.getModel().getAttribute(attr.getName()) != null)
                 return;
 
-            HBox newAttribute = createAttributeHBox(attr, null);
+            HBox newAttribute = createAttributeHBox(attr, null, true);
             // create undo and redo action for adding attribute
             baseElement.getOwner().getCommandBuilder().execute(new ICommand() {
                 final int linePosition = attributesBox.getChildren().size()-1;
@@ -390,7 +450,7 @@ public class RightMenu {
             if (baseElement.getModel().getAttribute(attr.getName()) != null)
                 return;
             TitledPane listOfTitleAttributes = createAttributeTitledPane(attr);
-            HBox newAttribute = createAttributeHBox(attr, listOfTitleAttributes);
+            HBox newAttribute = createAttributeHBox(attr, listOfTitleAttributes, true);
             // create undo and redo action
             baseElement.getOwner().getCommandBuilder().execute(new ICommand() {
                 @Override
@@ -438,6 +498,8 @@ public class RightMenu {
 
     /**
      * Create layout with classifier's name and abstract options.
+     *
+     * @param baseElement Selected instance of GClassElement
      */
     private GridPane createTopHeaderSection(GClassElement baseElement) {
         GridPane nameGrid = new GridPane();
@@ -475,6 +537,9 @@ public class RightMenu {
         nameField.setOnAction(ev -> {
             var classDiagram = baseElement.getOwner().getModel();
             // check for collision of classifier names
+            if (nameField.getText().equals(baseElement.getModel().getName())) {
+                return;
+            }
             if (classDiagram.getClassifier(nameField.getText()) != null) {
                 // TODO: class can replace classifier
                 Alert alert = new Alert(Alert.AlertType.ERROR);

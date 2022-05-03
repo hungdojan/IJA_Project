@@ -1,5 +1,6 @@
 package ija.umleditor.models;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -30,43 +31,65 @@ public class SequenceDiagram extends Element {
     }
 
     public UMLObject addObject(UMLClass instanceOfClass, String name) {
-        // TODO:
-        return null;
+        if (instanceOfClass == null)
+            return null;
+        var object = objects.stream().filter(x -> x.getName().equals(name))
+                .findFirst().orElse(null);
+        if (object != null)
+            return null;
+        object = new UMLObject(name, instanceOfClass);
+        objects.add(object);
+        return object;
+    }
+
+    public boolean addObject(UMLObject obj) {
+        if (obj == null)
+            return false;
+        if (objects.contains(obj))
+            return false;
+        return objects.add(obj);
     }
 
     public UMLObject getObject(String name) {
-        // TODO:
-        return null;
+        return objects.stream().filter(x -> x.getName().equals(name))
+                .findFirst().orElse(null);
     }
 
     public boolean removeObject(String name) {
-        // TODO:
-        return false;
+        var obj = getObject(name);
+        return removeObject(obj);
     }
 
     public boolean removeObject(UMLObject object) {
-        // TODO:
-        return false;
+        if (object == null)
+            return false;
+        return objects.remove(object);
     }
 
     public UMLMessage addMessage(UMLObject src, UMLObject dst) {
-        // TODO:
-        return null;
+        var message = new UMLMessage("", src, dst, null);
+        messages.add(message);
+        return message;
     }
 
     public boolean addMessage(UMLMessage msg) {
-        // TODO:
-        return false;
+        if (msg == null || messages.contains(msg))
+            return false;
+        return messages.add(msg);
     }
 
     public UMLMessage getMessageAt(int pos) {
-        // TODO:
-        return null;
+        try {
+            return messages.get(pos);
+        } catch (IndexOutOfBoundsException ignored) {
+            return null;
+        }
     }
 
     public int getMessagePosition(UMLMessage msg) {
-        // TODO:
-        return -1;
+        if (msg == null)
+            return -1;
+        return messages.indexOf(msg);
     }
 
     public boolean moveMessageIntoPosition(UMLMessage msg, int newPos) {
@@ -75,21 +98,46 @@ public class SequenceDiagram extends Element {
     }
 
     public boolean removeMessage(UMLMessage msg) {
-        // TODO:
-        return false;
+        if (msg == null)
+            return false;
+        return messages.remove(msg);
     }
 
     public boolean removeMessage(int pos) {
-        // TODO:
-        return false;
+        var msg = getMessageAt(pos);
+        if (msg == null)
+            return false;
+        return messages.remove(msg);
     }
 
     public void close() {
-        // TODO:
+        for (var o : objects)
+            o.close();
+        for (var m : messages)
+            m.close();
     }
 
     @Override
     public JSONObject createJsonObject() {
-        return null;
+        JSONObject object = new JSONObject();
+        object.put("_class", "SequenceDiagram");
+        object.put("name", nameProperty.getValue());
+
+        // add objects
+        JSONArray jsonObjects = new JSONArray();
+        for (var o : objects) {
+            var jsonObject = o.createJsonObject();
+            jsonObjects.put(jsonObject);
+        }
+        object.put("objects", jsonObjects);
+
+        // add messages
+        JSONArray jsonMessages = new JSONArray();
+        for (var m : messages) {
+            var jsonMessage = m.createJsonObject();
+            jsonMessages.put(jsonMessage);
+        }
+        object.put("messages", jsonMessages);
+        return object;
     }
 }

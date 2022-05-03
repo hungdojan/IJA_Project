@@ -4,6 +4,8 @@ import ija.umleditor.models.*;
 
 public class Templates {
     private static int classCounter = 1;
+    private static int sequenceDiagramCounter = 1;
+    private static int objectCounter = 1;
 
     public static void resetClassCounter() {
         Templates.classCounter = 1;
@@ -26,6 +28,12 @@ public class Templates {
         return model;
     }
 
+    public static SequenceDiagram createSequenceDiagram(ClassDiagram baseDiagram) {
+        SequenceDiagram model = new SequenceDiagram("SequenceDiagram" + sequenceDiagramCounter++);
+        baseDiagram.addSequenceDiagram(model);
+        return model;
+    }
+
     public static UMLClassifier createClassModel(ClassDiagram baseDiagram) {
         int attributeCounter = 1;
         int operationCounter = 1;
@@ -35,7 +43,6 @@ public class Templates {
         model.addAttribute(UMLClass.createAttribute(true, "Operation" + model.getOperationCounter(), baseDiagram.getClassifier("void")));
         model.addAttribute(UMLClass.createAttribute(true, "Operation" + model.getOperationCounter(), baseDiagram.getClassifier("void")));
         baseDiagram.addClassifiers(model);
-        // FIXME: testing purposes
         return model;
     }
 

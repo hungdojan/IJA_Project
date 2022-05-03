@@ -1,3 +1,15 @@
+/**
+ * @brief Creates object and puts it on canvas.
+ * Object is assembled from label and dashed line.
+ * Object can be moved and renamed.
+ *
+ * This source code serves as submission for semester assignment of class IJA at FIT, BUT 2021/22.
+ *
+ * @file GObject.java
+ * @date 03/05/2022
+ * @authors Hung Do      (xdohun00)
+ *          Petr Kolarik (xkolar79)
+ */
 package ija.umleditor.controllers;
 
 import ija.umleditor.models.UMLObject;

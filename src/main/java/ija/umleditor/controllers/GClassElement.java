@@ -1,3 +1,15 @@
+/**
+ * @brief Creates class element.
+ * Creates instance of GClassElement.
+ * This instance can be moved or selected.
+ *
+ * This source code serves as submission for semester assignment of class IJA at FIT, BUT 2021/22.
+ *
+ * @file GClassElement.java
+ * @date 03/05/2022
+ * @authors Hung Do      (xdohun00)
+ *          Petr Kolarik (xkolar79)
+ */
 package ija.umleditor.controllers;
 
 import ija.umleditor.models.UMLAttribute;
@@ -37,11 +49,18 @@ public class GClassElement {
 
     private final VBox baseLayout;
 
+    /**
+     * Initial positioning of element.
+     */
     public static void initPositions() {
         GClassElement.initPosX = 0;
         GClassElement.initPosY = 0;
     }
 
+    /**
+     * Changes apperance of element if it is selected, otherwise sets default appearance.
+     * @param b Element is selected
+     */
     public void selected(boolean b) {
         if (b) {
             if (attributesBox != null) {
@@ -64,23 +83,42 @@ public class GClassElement {
         selected = b;
     }
 
+    /**
+     * Gets model of instance of UMLClass.
+     * @return Model of instance of UMLClass
+     */
     public UMLClass getModel() {
         return model;
     }
 
+    /**
+     * Gets base layout in form of VBox.
+     * @return Instance of VBox.
+     */
     public VBox getBaseLayout() {
         return baseLayout;
     }
 
+    /**
+     * Gets owner of GClassDiagram.
+     * @return Owner of GClassDiagram
+     */
     public GClassDiagram getOwner() {
         return owner;
     }
 
+    /**
+     * Stores relative positions of baseLayout into variable relativePos.
+     */
     public void storeRelativePosition() {
         relativePos = new Point2D(baseLayout.getTranslateX(), baseLayout.getTranslateY());
 
     }
 
+    /**
+     * Gets relative positions of baseLayout.
+     * @return X and Y coordinates of baseLayout
+     */
     public Point2D getRelativePosition() {
         return relativePos;
     }
@@ -107,6 +145,12 @@ public class GClassElement {
         attributesBox.getChildren().add(attribute);
     }
 
+    /**
+     * Adds operation to class element.
+     * If class already contains given operation or operation with same name
+     * error dialog window will be shown.
+     * @param oper Instance of operation
+     */
     public void addOperation(UMLOperation oper) {
         if (!model.addAttribute(oper)) {
             Alert a = new Alert(Alert.AlertType.ERROR);

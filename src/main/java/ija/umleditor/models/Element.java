@@ -1,3 +1,14 @@
+/**
+ * @brief Declaration of Element class
+ * Element is base class for (almost) all elements within ClassDiagram.
+ *
+ * This source code serves as submission for semester assignment of class IJA at FIT, BUT 2021/22
+ *
+ * @file Element.java
+ * @date 22/04/2022
+ * @authors Hung Do      (xdohun00)
+ *          Petr Kolarik (xkolar79)
+ */
 package ija.umleditor.models;
 
 import javafx.beans.property.SimpleStringProperty;
@@ -35,5 +46,8 @@ public abstract class Element {
         nameProperty.set(name);
     }
 
+    /**
+     * Creates JSON representation of element's content.
+     */
     public abstract JSONObject createJsonObject();
 }

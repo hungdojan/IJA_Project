@@ -53,6 +53,17 @@ public class UMLMessage extends Element implements IObserver {
         this.message = message;
     }
 
+    public void close() {
+        if (sender != SequenceDiagram.undefObject) {
+            sender.detach(this);
+        }
+        if (receiver != SequenceDiagram.undefObject) {
+            receiver.detach(this);
+        }
+        if (message != SequenceDiagram.undefOperation) {
+        }
+    }
+
     @Override
     public void update(String msg) {
         if(Objects.equals(msg, "DELETE")) {
@@ -68,6 +79,12 @@ public class UMLMessage extends Element implements IObserver {
 
     @Override
     public JSONObject createJsonObject() {
-        return null;
+        JSONObject object = new JSONObject();
+        object.put("_class", "UMLMessage");
+        object.put("sender", sender.getName());
+        object.put("receiver", receiver.getName());
+        object.put("name", nameProperty.getValue());
+        object.put("message", message.getName());
+        return object;
     }
 }

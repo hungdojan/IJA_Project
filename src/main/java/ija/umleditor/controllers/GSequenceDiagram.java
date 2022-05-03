@@ -1,3 +1,14 @@
+/**
+ * @brief Creates sequence diagram.
+ * HBox layout contains canvas to draw the diagram on and right menu to edit objects.
+ *
+ * This source code serves as submission for semester assignment of class IJA at FIT, BUT 2021/22.
+ *
+ * @file GSequenceDiagram.java
+ * @date 03/05/2022
+ * @authors Hung Do      (xdohun00)
+ *          Petr Kolarik (xkolar79)
+ */
 package ija.umleditor.controllers;
 
 import ija.umleditor.models.SequenceDiagram;
@@ -44,7 +55,9 @@ public class GSequenceDiagram {
     public GSequenceDiagram(TabPane rootTab, SequenceDiagram model, GClassDiagram owner) {
 
         this.model = Objects.requireNonNull(model);
-        Tab baseTab = new Tab("Sequence diagram");
+        this.owner = Objects.requireNonNull(owner);
+
+        Tab baseTab = new Tab(model.getName());
 
         // content pane
         baseHBox = new HBox();

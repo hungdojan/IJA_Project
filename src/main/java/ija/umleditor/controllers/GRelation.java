@@ -1,3 +1,16 @@
+/**
+ * @brief Creates relation between two elements.
+ * Relation is assembled from line and arrow.
+ * Type of arrow depends on relation type.
+ * Relation moves accordingly to elements it is binded to.
+ *
+ * This source code serves as submission for semester assignment of class IJA at FIT, BUT 2021/22.
+ *
+ * @file GRelation.java
+ * @date 03/05/2022
+ * @authors Hung Do      (xdohun00)
+ *          Petr Kolarik (xkolar79)
+ */
 package ija.umleditor.controllers;
 
 import javafx.geometry.Bounds;
@@ -25,14 +38,27 @@ private Polygon arrow;
         return model1;
     }
 
+    /**
+     * Gets second model of element.
+     * @return Instance of GClassElement
+     */
     public GClassElement getModel2() {
         return model2;
     }
-
+    /**
+     * Gets line that connects two elements.
+     * @return Instance of Line
+     */
     public Line getBaseStructure() {
         return baseStructure;
     }
 
+    /**
+     * Creates relation between two elements.
+     * @param e1 Starting element
+     * @param e2 Ending element
+     * @param basePane Canvas to put the relation on
+     */
     public GRelation(GClassElement e1, GClassElement e2, Pane basePane) {
         model1 = Objects.requireNonNull(e1);
         model2 = Objects.requireNonNull(e2);
