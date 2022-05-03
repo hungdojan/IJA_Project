@@ -7,6 +7,7 @@ import javafx.animation.StrokeTransition;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
@@ -25,6 +26,7 @@ public class GClassElement {
     // position of mouse pressed
     private double posX;
     private double posY;
+    private Point2D relativePos;
     private boolean selectable = true;
 
     private VBox attributesBox = null;
@@ -75,6 +77,14 @@ public class GClassElement {
 
     public GClassDiagram getOwner() {
         return owner;
+    }
+
+    public void storeRelativePosition() {
+        relativePos =   new Point2D(baseLayout.getTranslateX(), baseLayout.getTranslateY());
+    }
+
+    public Point2D getRelativePosition() {
+        return relativePos;
     }
 
     /**

@@ -1,7 +1,11 @@
 package ija.umleditor.models;
 
-public class UMLClassifier extends Element {
+import java.util.HashSet;
+import java.util.Set;
+
+public class UMLClassifier extends Element implements ISubject {
     private final boolean isUserDefined;
+    private Set<IObserver> observers = new HashSet<>();
 
     /**
      * Class {@code UMLClassifier} constructor.
@@ -31,11 +35,32 @@ public class UMLClassifier extends Element {
         return isUserDefined;
     }
 
+    public Set<IObserver> getObservers() {
+        return observers;
+    }
+
     /**
      * Sets new classifier name
      * @param name Element's name
      */
     public void setName(String name) {
         super.setName(name);
+    }
+
+    @Override
+    public void attach(IObserver observer) {
+        observers.add(observer);
+    }
+
+    @Override
+    public void detach(IObserver observer) {
+        observers.remove(observer);
+    }
+
+    @Override
+    public void notify(String msg) {
+        for (var o : observers) {
+            o.update(msg);
+        }
     }
 }
