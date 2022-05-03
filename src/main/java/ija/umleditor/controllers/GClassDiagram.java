@@ -26,6 +26,7 @@ public class GClassDiagram {
     private RightMenu rightMenu = null;
     private final List<GClassElement> gClassElementList = new ArrayList<>();
     private final List<GRelation> gRelationsList = new ArrayList<>();
+    private final List<GSequenceDiagram> gSequenceDiagramList = new ArrayList<>();
     private double posX;
     private double posY;
     private final CommandBuilder commandBuilder = new CommandBuilder();

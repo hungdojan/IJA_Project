@@ -200,6 +200,15 @@ public class ClassDiagram extends Element {
                 .findFirst().orElse(null);
     }
 
+    public List<UMLClass> getClasses() {
+        List<UMLClass> classes = new ArrayList<>();
+        for (var classifier : classElements) {
+            if (classifier instanceof UMLClass)
+                classes.add((UMLClass) classifier);
+        }
+        return classes;
+    }
+
     public boolean isInClassDiagram(UMLClassifier classifier) {
         return classElements.contains(classifier);
     }

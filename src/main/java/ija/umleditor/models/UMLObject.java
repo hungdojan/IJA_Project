@@ -1,5 +1,8 @@
 package ija.umleditor.models;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -10,7 +13,13 @@ import java.util.Objects;
 public class UMLObject extends Element implements IObserver {
 
     private UMLClass classOfInstance;
-//    private final List<UMLInstancePeriod> instancePeriods;
+    private StringProperty toStringProperty = new SimpleStringProperty();
+
+    public StringProperty getToStringProperty() {
+        return toStringProperty;
+    }
+
+    //    private final List<UMLInstancePeriod> instancePeriods;
 
     /**
      * Class UMLObject constructor
@@ -21,6 +30,8 @@ public class UMLObject extends Element implements IObserver {
         super(name);
         this.classOfInstance = classOfInstance;
         classOfInstance.attach(this);
+        toStringProperty.bind(Bindings.concat(classOfInstance.nameProperty, " : ", nameProperty));
+//        toStringProperty.set(classOfInstance.getName() + " : " + name);
     }
 
     /**

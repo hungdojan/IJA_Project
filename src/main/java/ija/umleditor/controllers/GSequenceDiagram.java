@@ -2,49 +2,94 @@ package ija.umleditor.controllers;
 
 import ija.umleditor.models.SequenceDiagram;
 import ija.umleditor.models.UMLClass;
+import ija.umleditor.template.Templates;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
-import javafx.scene.shape.Rectangle;
 
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class GSequenceDiagram {
 
 //    private final Pane basePane;
     private final HBox baseHBox;
+    private AnchorPane rightMenu;
+    private final List<GObject> gObjectList = new ArrayList<>();
+    private final List<GMessage> gMessageList = new ArrayList<>();
+    private final CommandBuilder commandBuilder = new CommandBuilder();
+    private final GClassDiagram owner;
+    private GObject selectedObject;
     private Pane canvas = null;
     private GObject object = null;
     private GMessage msgLine = null;
-    private HBox messageBox = null;
+//    private HBox messageBox = null;
+    private Button deleteMsgButton;
 
     private SequenceDiagram model;
-    private double count = 0;
+    private int countObj = 0;
+    private int countMsg = 0;
 
-    public GSequenceDiagram(TabPane rootTab, SequenceDiagram model) throws FileNotFoundException {
+    /**
+     * Class {@code GSequenceDiagram} constructor.
+     * @param rootTab Pane to put the diagram on
+     * @param model Base model
+     * @param owner Parent GClassDiagram
+     */
+    public GSequenceDiagram(TabPane rootTab, SequenceDiagram model, GClassDiagram owner) {
+
         this.model = Objects.requireNonNull(model);
         Tab baseTab = new Tab("Sequence diagram");
 
         // content pane
         baseHBox = new HBox();
 
-        // create right menu layout
-        AnchorPane rightMenu = new AnchorPane();
+        // create right menu
+        rightMenu = new AnchorPane();
         rightMenu.setMinWidth(200);
+        VBox menuVBox = createRightMenu(rootTab, owner, baseTab);
+
+        ScrollPane drawable = createCanvas();
+
+        // add created elements to base
+        rightMenu.getChildren().add(menuVBox);
+        baseHBox.getChildren().addAll(drawable, rightMenu);
+        baseTab.setContent(baseHBox);
+        rootTab.getTabs().add(baseTab);
+    }
+
+    /**
+     * Creates pane to put diagram on.
+     * @return Instance of ScrollPane
+     */
+    private ScrollPane createCanvas() {
+        // create canvas
+        ScrollPane drawable = new ScrollPane();
+        drawable.setOnMouseClicked(ev -> {
+            setSelectedObject(null);
+        });
+        drawable.setFitToWidth(true);
+        drawable.setFitToHeight(true);
+
+        canvas = new AnchorPane();
+        drawable.setContent(canvas);
+        HBox.setHgrow(drawable, Priority.ALWAYS);
+        return drawable;
+    }
+
+    /**
+     * Creates right menu witch name and type of object and messages.
+     * @param rootTab Base TabPane
+     * @param owner Parent of GClassDiagram
+     * @param baseTab Base pane
+     * @return Created right menu as VBox.
+     */
+    private VBox createRightMenu(TabPane rootTab, GClassDiagram owner, Tab baseTab) {
         VBox menuVBox = new VBox();
         menuVBox.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         menuVBox.setFillWidth(true);
@@ -57,12 +102,9 @@ public class GSequenceDiagram {
         // set type
         Label typeLabel = new Label("Select type:");
         typeLabel.setStyle("-fx-font-weight: bold");
+        var list = owner.getModel().getClasses().stream().map(UMLClass::getName).collect(Collectors.toList());
         ObservableList<String> options =
-                FXCollections.observableArrayList(
-                        "Option 1",
-                        "Option 2",
-                        "Option 3"
-                );
+                FXCollections.observableArrayList(list);
         ComboBox typeCB = new ComboBox(options);
         typeCB.setMaxWidth(Double.MAX_VALUE);
 
@@ -71,8 +113,11 @@ public class GSequenceDiagram {
         addObject.setMaxWidth(Double.MAX_VALUE);
         addObject.setOnAction(e -> {
             // TODO: alert is empty
-            object = new GObject(canvas, (String) typeCB.getValue(), nameTF.getText(), count);
-            count++;
+            var objectInstance = Templates.createObject();
+            object = new GObject(canvas, objectInstance, countObj, this);
+            model.addObject(objectInstance);
+            gObjectList.add(object);
+            countObj++;
         });
 
         Label msgLabel = new Label("Messages:");
@@ -83,7 +128,8 @@ public class GSequenceDiagram {
         addMessage.setMaxWidth(Double.MAX_VALUE);
         addMessage.setOnAction(e -> {
             // create box to store messages in right menu
-            messageBox = new HBox();
+            var messageBox = new HBox();
+            deleteMsgButton = new Button("DELETE");
             TextField msgTF = new TextField();
             ObservableList<String> msgTypes =
                     FXCollections.observableArrayList(
@@ -95,11 +141,27 @@ public class GSequenceDiagram {
                     );
             ComboBox msgCB = new ComboBox(msgTypes);
             msgCB.setMinWidth(80);
-            messageBox.getChildren().addAll(msgTF, msgCB);
+            messageBox.getChildren().addAll(msgTF, msgCB, deleteMsgButton);
+            deleteMsgButton.setOnAction(ev -> {
+                menuVBox.getChildren().remove(messageBox);
+            });
             menuVBox.getChildren().add(menuVBox.getChildren().size()-3, messageBox);
-            // put the message line on canvas
-            msgLine = new GMessage(canvas);
+            msgTF.setOnAction(ev -> {
+                // put the message line on canvas
+                if (gObjectList.size() >= 2) {
+                    msgLine = new GMessage(canvas, gObjectList.get(0), gObjectList.get(1), countMsg, msgTF);
+                    countMsg++;
+                }
+            });
         });
+        
+        // fill vbox to anchor pane and add border
+        AnchorPane.setBottomAnchor(menuVBox, 0.0);
+        AnchorPane.setTopAnchor(menuVBox, 0.0);
+        AnchorPane.setLeftAnchor(menuVBox, 0.0);
+        AnchorPane.setRightAnchor(menuVBox, 0.0);
+        menuVBox.setStyle("-fx-border-color: black; -fx-border-width: 2; -fx-border-style: hidden hidden hidden solid");
+        menuVBox.setPadding(new Insets(5, 10, 5, 10));
 
         // TODO: FIX DRAGGING
 //        if (messageBox != null) {
@@ -110,27 +172,6 @@ public class GSequenceDiagram {
 //                db.setContent(content);
 //            });
 //        };
-
-        // dialog layout
-//        Dialog<Void> dialogWindow = new Dialog<>();
-//        GridPane dialogGrid = new GridPane();
-
-        // place into grid
-//        dialogGrid.add(nameLabel, 0, 0);
-//        dialogGrid.add(nameTF, 1, 0);
-//        dialogGrid.add(typeLabel, 0, 1);
-//        dialogGrid.add(typeCB, 1, 1);
-//
-//        dialogWindow.getDialogPane().setContent(dialogGrid);
-//        dialogWindow.getDialogPane().getButtonTypes().add(ButtonType.OK);
-//        dialogWindow.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-//
-//        addObject.setOnAction(e -> {
-//            dialogWindow.showAndWait();
-//        });
-//        dialogWindow.setOnCloseRequest(e -> {
-//            System.out.println(nameTF.getText());
-//        });
 
         // create separator button x objects
         Separator sep = new Separator();
@@ -149,45 +190,23 @@ public class GSequenceDiagram {
         VBox.setMargin(addMessage, new Insets(0, 0, 5, 0));
         VBox.setMargin(sep, new Insets(0, 0, 5, 0));
 
-        // stretch vbox to whole height
-//        VBox.setVgrow(nameLabel, Priority.ALWAYS);
-//        VBox.setVgrow(nameTF, Priority.ALWAYS);
-//        VBox.setVgrow(typeLabel, Priority.ALWAYS);
-//        VBox.setVgrow(typeCB, Priority.ALWAYS);
-//        VBox.setVgrow(addObject, Priority.ALWAYS);
-//        VBox.setVgrow(msgLabel, Priority.ALWAYS);
-//        VBox.setVgrow(addMessage, Priority.ALWAYS);
-//        VBox.setVgrow(sep, Priority.ALWAYS);
-//        VBox.setVgrow(deleteDiagram, Priority.ALWAYS);
-
-//        for (Node child : menuVBox.getChildren()) {
-//            VBox.setMargin(child, new Insets(0, 0, 50, 0));
-//        }
-//        menuVBox.getChildren().forEach(child -> VBox.setMargin(child, new Insets (0, 0, 50, 0)));
-
         menuVBox.getChildren().addAll(nameLabel, nameTF, typeLabel, typeCB, addObject, msgLabel, addMessage, sep, deleteDiagram);
+        return menuVBox;
+    }
 
-        // create canvas
-        ScrollPane drawable = new ScrollPane();
-        drawable.setFitToWidth(true);
-        drawable.setFitToHeight(true);
-
-        canvas = new AnchorPane();
-        drawable.setContent(canvas);
-        HBox.setHgrow(drawable, Priority.ALWAYS);
-
-        // fill vbox to anchor pane and add border
-        AnchorPane.setBottomAnchor(menuVBox, 0.0);
-        AnchorPane.setTopAnchor(menuVBox, 0.0);
-        AnchorPane.setLeftAnchor(menuVBox, 0.0);
-        AnchorPane.setRightAnchor(menuVBox, 0.0);
-        menuVBox.setStyle("-fx-border-color: black; -fx-border-width: 2; -fx-border-style: hidden hidden hidden solid");
-        menuVBox.setPadding(new Insets(5, 10, 5, 10));
-
-        // add created elements to base
-        rightMenu.getChildren().add(menuVBox);
-        baseHBox.getChildren().addAll(drawable, rightMenu);
-        baseTab.setContent(baseHBox);
-        rootTab.getTabs().add(baseTab);
+    public void setSelectedObject(GObject object) {
+        if (selectedObject != null) {
+            selectedObject.selected(false);
+        }
+        selectedObject = object;
+        TextField nameField = (TextField) ((VBox) rightMenu.getChildren().get(0)).getChildren().get(1);
+        if (selectedObject == null) {
+            nameField.textProperty().unbind();
+            nameField.setText("");
+            return;
+        }
+        selectedObject.selected(true);
+        // TODO: load data to right menu
+        nameField.textProperty().bind(selectedObject.getModel().getNameProperty());
     }
 }

@@ -70,4 +70,8 @@ public class Templates {
     public static UMLAttribute createParameter(UMLOperation baseOperation, ClassDiagram baseDiagram) {
         return (UMLAttribute) UMLClass.createAttribute(false, "Parameter"+ UMLOperation.getParameterCounter(), baseDiagram.getClassifier("string"));
     }
+
+    public static UMLObject createObject() {
+        return new UMLObject("Object" + objectCounter++, SequenceDiagram.undefClass);
+    }
 }

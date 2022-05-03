@@ -13,8 +13,14 @@ import java.util.Objects;
 public class GRelation {
     private final GClassElement model1;
     private final GClassElement model2;
-    private Line baseStructure;
+    private final Line baseStructure;
+    private Rotate rotation;
+private Polygon arrow;
 
+    /**
+     * Gets first model of element.
+     * @return Instance of GClassElement
+     */
     public GClassElement getModel1() {
         return model1;
     }
@@ -38,15 +44,11 @@ public class GRelation {
         Bounds boundsInSceneM1 = model1.getBaseLayout().localToScene(model1.getBaseLayout().getBoundsInLocal());
         Bounds boundsInSceneM2 = model2.getBaseLayout().localToScene(model2.getBaseLayout().getBoundsInLocal());
 
-        Polygon arrow = new Polygon();
+        arrow = new Polygon();
         arrow.getPoints().addAll(0.0, 0.0, 30.0, 8.0, 8.0, 30.0);
-//        Bounds arrowCords = arrow.localToScene(arrow.getBoundsInLocal());
         arrow.setFill(Color.BLACK);
-        Rotate rotation = new Rotate(120);
-        arrow.getTransforms().add(rotation);
-//        Group group = new Group(baseStructure, arrow);
-        arrow.layoutXProperty().bind(baseStructure.endXProperty().add(baseStructure.translateXProperty()));
-        arrow.layoutYProperty().bind(baseStructure.endYProperty().add(baseStructure.translateYProperty()));
+
+        Bounds boundsInSceneArrow = arrow.localToScene(arrow.getBoundsInLocal());
 
         // destination element is on the right of the source element
         if (boundsInSceneM1.getMaxX() <= boundsInSceneM2.getMinX()) {
@@ -58,9 +60,19 @@ public class GRelation {
                     .add(model1.getBaseLayout().translateYProperty()
                             .add(model1.getBaseLayout().heightProperty().divide(2))));
 
+            // create arrow
+            arrow.translateXProperty().bind(model2.getBaseLayout().translateXProperty()
+                    .add(model2.getBaseLayout().layoutXProperty()));
+            arrow.translateYProperty().bind((model2.getBaseLayout().translateYProperty()
+                    .add(model2.getBaseLayout().layoutYProperty()
+                            .add(model2.getBaseLayout().heightProperty().divide(2)))));
+            rotation = new Rotate(180*3.0/4.0);
+            arrow.getTransforms().add(rotation);
+
             // create connection to the second class element
-            baseStructure.endXProperty().bind(model2.getBaseLayout().layoutXProperty()
-                    .add(model2.getBaseLayout().translateXProperty()));
+            baseStructure.endXProperty().bind(arrow.layoutXProperty()
+                    .add(arrow.translateXProperty()
+                            .subtract(boundsInSceneArrow.getMaxX()-5)));
             baseStructure.endYProperty().bind(model2.getBaseLayout().layoutYProperty()
                     .add(model2.getBaseLayout().translateYProperty()
                             .add(model2.getBaseLayout().heightProperty().divide(2))));
@@ -74,10 +86,20 @@ public class GRelation {
                     .add(model1.getBaseLayout().translateYProperty()
                             .add(model1.getBaseLayout().heightProperty().divide(2))));
 
-            // create connection to the second class element
-            baseStructure.endXProperty().bind(model2.getBaseLayout().layoutXProperty()
-                    .add(model2.getBaseLayout().translateXProperty()
+            // create arrow
+            arrow.translateXProperty().bind(model2.getBaseLayout().translateXProperty()
+                    .add(model2.getBaseLayout().layoutXProperty()
                             .add(model2.getBaseLayout().widthProperty())));
+            arrow.translateYProperty().bind((model2.getBaseLayout().translateYProperty()
+                    .add(model2.getBaseLayout().layoutYProperty()
+                            .add(model2.getBaseLayout().heightProperty().divide(2)))));
+            rotation = new Rotate(-45);
+            arrow.getTransforms().add(rotation);
+
+            // create connection to the second class element
+            baseStructure.endXProperty().bind(arrow.layoutXProperty()
+                    .add(arrow.translateXProperty()
+                            .add(boundsInSceneArrow.getMaxX()-5)));
             baseStructure.endYProperty().bind(model2.getBaseLayout().layoutYProperty()
                     .add(model2.getBaseLayout().translateYProperty()
                             .add(model2.getBaseLayout().heightProperty().divide(2))));
@@ -118,6 +140,7 @@ public class GRelation {
         }
 
         basePane.getChildren().addAll(baseStructure, arrow);
+        arrow.toBack();
         baseStructure.toBack();
     }
 }

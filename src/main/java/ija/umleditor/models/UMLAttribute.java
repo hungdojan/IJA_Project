@@ -11,6 +11,7 @@ public class UMLAttribute extends Element implements IObserver {
     protected String visibility;
     protected UMLClassifier type;
     protected StringProperty toStringProperty = new SimpleStringProperty();
+    public UMLOperation parent = null;
 
     /**
      * Class {@code UMLAttribute} constructor
