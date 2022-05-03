@@ -1,11 +1,32 @@
 package ija.umleditor.models;
 
+import org.json.JSONObject;
+
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 public class UMLClassifier extends Element implements ISubject {
     private final boolean isUserDefined;
-    private Set<IObserver> observers = new HashSet<>();
+    private Set<IObserver> observers;
+    private double x;
+    private double y;
+
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    public void setY(double y) {
+        this.y = y;
+    }
 
     /**
      * Class {@code UMLClassifier} constructor.
@@ -15,6 +36,7 @@ public class UMLClassifier extends Element implements ISubject {
     public UMLClassifier(String name) {
         super(name);
         isUserDefined = false;
+        observers = new HashSet<>();
     }
 
     /**
@@ -25,6 +47,7 @@ public class UMLClassifier extends Element implements ISubject {
     public UMLClassifier(String name, boolean isUserDefined) {
         super(name);
         this.isUserDefined = isUserDefined;
+        observers = new HashSet<>();
     }
 
     /**
@@ -62,5 +85,18 @@ public class UMLClassifier extends Element implements ISubject {
         for (var o : observers) {
             o.update(msg);
         }
+    }
+
+    public void close() {
+        notify("DELETE");
+    }
+
+    @Override
+    public JSONObject createJsonObject() {
+        JSONObject object = new JSONObject();
+        object.put("_class", "UMLClassifier");
+        object.put("name", nameProperty.getValue());
+        object.put("isUserDefined", isUserDefined);
+        return object;
     }
 }

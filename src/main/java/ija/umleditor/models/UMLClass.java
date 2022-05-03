@@ -4,6 +4,8 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -310,7 +312,6 @@ public class UMLClass extends UMLClassifier {
         return relations.add(relation);
     }
 
-
     /**
      * Gets relation between this and {@code dest} class.
      * @param dest Destination class
@@ -353,5 +354,20 @@ public class UMLClass extends UMLClassifier {
     public void clearAllRelations() {
         relations.forEach(UMLRelation::removeRelationDependency);
         relations.clear();
+    }
+
+    @Override
+    public JSONObject createJsonObject() {
+        JSONObject object = super.createJsonObject();
+        object.remove("_class");
+        object.put("_class", "UMLClass");
+        object.put("isAbstract", abstractProperty.getValue());
+        JSONArray jsonAttributes = new JSONArray();
+        for (var attr : attributes) {
+            var jsonAttribute = attr.createJsonObject();
+            jsonAttributes.put(jsonAttribute);
+        }
+        object.put("attributes", jsonAttributes);
+        return object;
     }
 }

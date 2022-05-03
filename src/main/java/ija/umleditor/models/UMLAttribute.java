@@ -2,10 +2,11 @@ package ija.umleditor.models;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import org.json.JSONObject;
 
 import java.util.Objects;
 
-public class UMLAttribute extends Element {
+public class UMLAttribute extends Element implements IObserver {
 
     protected String visibility;
     protected UMLClassifier type;
@@ -18,7 +19,12 @@ public class UMLAttribute extends Element {
      */
     public UMLAttribute(String name, UMLClassifier type) {
         super(name);
-        this.type = type;
+        if (type == null)
+            type = ClassDiagram.undefClassifier;
+        if (type != ClassDiagram.undefClassifier) {
+            this.type = type;
+            this.type.attach(this);
+        }
         visibility = "";
         toStringProperty.set(visibility + type.getName() + " " + name);
     }
@@ -79,8 +85,35 @@ public class UMLAttribute extends Element {
      * @param type New attribute's type
      */
     public void setType(UMLClassifier type) {
+        if (this.type != ClassDiagram.undefClassifier)
+            this.type.detach(this);
         this.type = type;
+        if (this.type != ClassDiagram.undefClassifier)
+            this.type.attach(this);
         updateName();
+    }
+
+    public void close() {
+        if (type != ClassDiagram.undefClassifier)
+            type.detach(this);
+    }
+
+    @Override
+    public void update(String msg) {
+        if (Objects.equals(msg, "DELETE")) {
+            type = ClassDiagram.undefClassifier;
+            updateName();
+        }
+    }
+
+    @Override
+    public JSONObject createJsonObject() {
+        JSONObject object = new JSONObject();
+        object.put("_class", "UMLAttribute");
+        object.put("name", nameProperty.getValue());
+        object.put("type", type.getName());
+        object.put("visibility", visibility);
+        return object;
     }
 
     @Override

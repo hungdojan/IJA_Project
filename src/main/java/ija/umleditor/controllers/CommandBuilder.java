@@ -3,25 +3,53 @@ package ija.umleditor.controllers;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class contains undo and redo stacks.
+ */
 public class CommandBuilder {
-    public static interface Command {
-        void undo();
-        void execute();
+
+    private final List<ICommand> undoStack = new ArrayList<>();
+    private final List<ICommand> redoStack = new ArrayList<>();
+
+    /**
+     * Load command into the structure and executes command.
+     * @param cmd Instance of Command defining action.
+     */
+    public void execute(ICommand cmd) {
+        redoStack.clear();
+        undoStack.add(0, cmd);
+        cmd.execute();
     }
 
-    public static class Invoker {
-        List<Command> commands = new ArrayList<>();
+    /**
+     * Executes undo command.
+     */
+    public void undo() {
+        if (undoStack.isEmpty())
+            return;
+        var cmd = undoStack.get(0);
+        cmd.undo();
+        undoStack.remove(0);
+        redoStack.add(0, cmd);
+    }
 
-        public void execute(Command cmd) {
-            commands.add(0, cmd);
-            cmd.execute();
-        }
+    /**
+     * Executes redo command.
+     */
+    public void redo() {
+        if (redoStack.isEmpty())
+            return;
+        var cmd = redoStack.get(0);
+        cmd.redo();
+        redoStack.remove(0);
+        undoStack.add(0, cmd);
+    }
 
-        public void undo() {
-            if (commands.size() > 0) {
-                Command cmd = commands.remove(0);
-                cmd.undo();
-            }
-        }
+    /**
+     * Clears both stacks.
+     */
+    public void reset() {
+        undoStack.clear();
+        redoStack.clear();
     }
 }

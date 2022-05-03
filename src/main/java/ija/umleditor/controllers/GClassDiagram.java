@@ -24,10 +24,11 @@ public class GClassDiagram {
     private final ClassDiagram model;
     private GClassElement selectedElement = null;
     private RightMenu rightMenu = null;
-    private List<GClassElement> gClassElementList = new ArrayList<>();
-    private List<GRelation> gRelationsList = new ArrayList<>();
+    private final List<GClassElement> gClassElementList = new ArrayList<>();
+    private final List<GRelation> gRelationsList = new ArrayList<>();
     private double posX;
     private double posY;
+    private final CommandBuilder commandBuilder = new CommandBuilder();
 
     private final HBox content;
     private final Pane canvas;
@@ -175,12 +176,15 @@ public class GClassDiagram {
         canvas = new AnchorPane();
         drawable.setContent(canvas);
         HBox.setHgrow(drawable, Priority.ALWAYS);
+        // selecting element
         canvas.setOnMouseClicked(ev -> {
             if (clickable) {
                 setSelectedElement(null);
             }
             clickable = true;
+            ev.consume();
         });
+        // define movement of canvas
         canvas.setOnMousePressed(ev -> {
             posX = ev.getX();
             posY = ev.getY();
@@ -188,7 +192,6 @@ public class GClassDiagram {
                 gClassElement.storeRelativePosition();
             }
         });
-        // event simulating canvas move
         canvas.setOnMouseDragged(ev -> {
             if (ev.getButton() == MouseButton.SECONDARY) {
                 for (var gClassElement : gClassElementList) {
@@ -199,6 +202,7 @@ public class GClassDiagram {
             }
             ev.consume();
         });
+
         for (var classElement : classDiagram.getClassElements()) {
             if (!(classElement instanceof UMLClass))
                 continue;
@@ -209,6 +213,20 @@ public class GClassDiagram {
         clipRect.heightProperty().bind(canvas.heightProperty());
         clipRect.widthProperty().bind(canvas.widthProperty());
         canvas.setClip(clipRect);
+        // TODO: testing pane movement
+        // canvas.setStyle("-fx-background-color: #dedede");
+        // canvas.setOnMousePressed(ev -> {
+        //     mousePanePosX = ev.getX();
+        //     mousePanePosY = ev.getY();
+        // });
+        // canvas.setOnMouseDragged(ev -> {
+        //     // TODO: move with group
+        //     clickable = false;
+        //     canvas.setTranslateX(canvas.getTranslateX() + ev.getX() - mousePanePosX);
+        //     canvas.setTranslateY(canvas.getTranslateY() + ev.getY() - mousePanePosY);
+        // });
+        // set clip
+        // TODO: end of testing
 
         // left panel with objects to create
         AnchorPane leftPane = new AnchorPane();
@@ -223,16 +241,37 @@ public class GClassDiagram {
                 if (selectedElement == null || !deleteFlag) {
                     return;
                 }
-                for (var gRelation : gRelationsList) {
-                    if (gRelation.getModel1() == selectedElement || gRelation.getModel2() == selectedElement) {
-                       canvas.getChildren().remove(gRelation.getBaseStructure());
+                var command = new ICommand() {
+                    @Override
+                    public void undo() {
+
                     }
-                }
+
+                    @Override
+                    public void redo() {
+
+                    }
+
+                    @Override
+                    public void execute() {
+
+                    }
+                };
+                commandBuilder.execute(command);
+                // remove from model
                 model.removeClassElement(selectedElement.getModel());
-                // remove relations
+                // remove from canvas
                 canvas.getChildren().remove(selectedElement.getBaseLayout());
+                // remove gClassElement from the list
                 gClassElementList.remove(selectedElement);
+                // resets element
                 setSelectedElement(null);
+            }
+            else if (ev.isControlDown() && ev.getCode() == KeyCode.Z) {
+                commandBuilder.undo();
+            }
+            else if (ev.isControlDown() && ev.getCode() == KeyCode.Y) {
+                commandBuilder.redo();
             }
         });
 
@@ -272,6 +311,10 @@ public class GClassDiagram {
 
     public void addRelation(GRelation relation) {
         gRelationsList.add(relation);
+    }
+
+    public CommandBuilder getCommandBuilder() {
+        return commandBuilder;
     }
 
     public GRelation getRelation(UMLClass src, UMLClass dest) {

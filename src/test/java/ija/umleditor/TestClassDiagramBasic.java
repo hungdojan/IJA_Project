@@ -14,10 +14,9 @@ import static org.junit.jupiter.api.Assertions.*;
 public class TestClassDiagramBasic {
 
     private ClassDiagram classDiagram;
-    private static int counter = 1;
     @BeforeEach
     public void setUp() {
-        classDiagram = new ClassDiagram("ClassDiagram" + counter++);
+        classDiagram = new ClassDiagram();
     }
     @AfterEach
     public void tearDown() { }

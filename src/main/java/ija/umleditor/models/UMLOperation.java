@@ -1,6 +1,7 @@
 package ija.umleditor.models;
 
-import javafx.beans.property.StringProperty;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -21,9 +22,12 @@ public class UMLOperation extends UMLAttribute {
     }
     @Override
     protected void updateName() {
-        toStringProperty.set(visibility + type.getName() + " " + getName() + "(" +
-                operationParameters.stream().map(UMLAttribute::toString).collect(Collectors.joining(", ")) +
-                ")");
+        if (type == null || Objects.equals(type.getName(), "#UNDEF"))
+            toStringProperty.set("#UNDEF");
+        else
+            toStringProperty.set(visibility + type.getName() + " " + getName() + "(" +
+                    operationParameters.stream().map(UMLAttribute::toString).collect(Collectors.joining(", ")) +
+                    ")");
     }
     /**
      * Class {@code UMLOperation} constructor
@@ -37,7 +41,7 @@ public class UMLOperation extends UMLAttribute {
         for (var item : args) {
             // remove visibility of operation parameters
             item.visibility = "";
-            addParameters(item);
+            addParameter(item);
         }
         updateName();
     }
@@ -57,7 +61,7 @@ public class UMLOperation extends UMLAttribute {
      * @param parameter Instance of the parameter
      * @return true if successfully added; false otherwise
      */
-    public boolean addParameters(UMLAttribute parameter) {
+    public boolean addParameter(UMLAttribute parameter) {
         // search for parameter with similar name
         UMLAttribute attribute = operationParameters.stream()
                 .filter(x -> Objects.equals(x.getName(), parameter.getName()))
@@ -82,7 +86,7 @@ public class UMLOperation extends UMLAttribute {
      * @param parameter Instance of parameter
      * @return
      */
-    public UMLAttribute addOrReplaceParameters(UMLAttribute parameter) {
+    public UMLAttribute addOrReplaceParameter(UMLAttribute parameter) {
         // search for parameter with similar name
         UMLAttribute attribute = operationParameters.stream()
                 .filter(x -> Objects.equals(x.getName(), parameter.getName()))
@@ -157,9 +161,23 @@ public class UMLOperation extends UMLAttribute {
     }
 
     @Override
+    public JSONObject createJsonObject() {
+        var object = super.createJsonObject();
+        object.remove("_class");
+        object.put("_class", "UMLOperation");
+        JSONArray jsonParameters = new JSONArray();
+        for (var param : operationParameters) {
+            JSONObject jsonParameter = param.createJsonObject();
+            jsonParameters.put(jsonParameter);
+        }
+        object.put("operationParameters", jsonParameters);
+        return object;
+    }
+
+    @Override
     public String toString() {
         return visibility + type.getName() + " " + getName() + "(" +
-               operationParameters.stream().map(UMLAttribute::toString).collect(Collectors.joining(", ")) +
+                operationParameters.stream().map(UMLAttribute::toString).collect(Collectors.joining(", ")) +
                 ")";
     }
 }

@@ -85,7 +85,7 @@ public class RightMenu {
             UMLAttribute newAttr = Templates.createParameter(operation, baseElement.getOwner().getModel());
             HBox attrItemHBox = createAttributeHBox(newAttr, null);
             attributesVBox.getChildren().add(attributesVBox.getChildren().size()-1, attrItemHBox);
-            operation.addParameters(newAttr);
+            operation.addParameter(newAttr);
 
             ((Button) attrItemHBox.getChildren().get(2)).setOnAction(e -> {
                 // TODO: remove boxes when empty
@@ -133,12 +133,11 @@ public class RightMenu {
     }
 
     private HBox createAttributeHBox(UMLAttribute item, TitledPane listOTitledPane) {
-        TextField visibilityField = new TextField(item.getVisibility());
         TextField typeField = new TextField(item.getType().getName());
         TextField textField = new TextField(item.getName());
         Button deleteButton = new Button("Delete");
-        deleteButton.setMinWidth(65);
-        HBox editBox = createHBox(visibilityField, typeField, textField, deleteButton);
+        HBox editBox = createHBox(typeField, textField, deleteButton);
+        HBox.setHgrow(textField, Priority.ALWAYS);
         // remove attribute event
         deleteButton.setOnAction(ev -> {
             // TODO: remove boxes when empty
@@ -152,27 +151,10 @@ public class RightMenu {
                 ((VBox) listOTitledPane.getParent()).getChildren().remove(listOTitledPane);
             }
         });
-        visibilityField.setOnAction(ev -> {
-            if (visibilityField.getText().isBlank()) {
-                // TODO: alert
-                Alert warning = new Alert(Alert.AlertType.WARNING);
-                warning.setTitle("Blank space");
-                warning.setContentText("Text field cannot be empty");
-                warning.show();
-                return;
-            }
-            var visibilityChar = visibilityField.getCharacters().charAt(0);
-            if (visibilityChar == '+' || visibilityChar == '-' || visibilityChar == '#' || visibilityChar == '~') {
-                item.setVisibility(visibilityChar);
-            }
-            else {
-                Alert warning = new Alert(Alert.AlertType.WARNING);
-                warning.setTitle("Warning");
-                warning.setContentText("Visibility can be only one of these: + - # ~");
-                warning.show();
-            }
-        });
+        // set model type
         typeField.setOnAction(ev -> {
+            if (Objects.equals(typeField.getText(), "#UNDEF"))
+                return;
             if (typeField.getText().isBlank()) {
                 // TODO: alert
                 Alert warning = new Alert(Alert.AlertType.WARNING);
@@ -181,8 +163,16 @@ public class RightMenu {
                 warning.show();
                 return;
             }
-            item.setType(new UMLClassifier(typeField.getText()));
+            // search for type instance in the class diagram
+            // create new classifier if not found
+            var type = baseElement.getOwner().getModel().getClassifier(typeField.getText());
+            if (type == null) {
+                type = ClassDiagram.createClassifier(typeField.getText(), false);
+                baseElement.getOwner().getModel().addClassifier(type);
+            }
+            item.setType(type);
         });
+        // set model name
         textField.setOnAction(ev -> {
             if (textField.getText().isBlank()) {
                 // TODO: alert
@@ -196,15 +186,16 @@ public class RightMenu {
 
             if (!modelClass.updateAttributeName(item.getName(), textField.getText())) {
                 // TODO: alert attribute already exists
-                Alert warning = new Alert(Alert.AlertType.WARNING);
-                warning.setTitle("Warning");
-                warning.setContentText("Attribute already exists");
-                warning.show();
             }
         });
         return editBox;
     }
 
+    /**
+     * Class constructor.
+     * @param baseElement Reference gClassElement instance.
+     * @param root Root pane to append right panel on.
+     */
     public RightMenu(GClassElement baseElement, Pane root) {
         base = new Accordion();
         base.setMaxWidth(450);
@@ -215,158 +206,20 @@ public class RightMenu {
         // edit name and stereotype
         TitledPane nameTP = new TitledPane();
         nameTP.setText("Name");
-        GridPane nameGrid = new GridPane();
-
-        // HBox with stereotype header, text field and save button
-        Label stereotype = new Label("Stereotype:");
-        stereotype.setStyle("-fx-font-weight: bold");
-        TextField stereotypeField = new TextField(baseElement.getModel().getStereotype());
-        GridPane.setHgrow(stereotypeField, Priority.ALWAYS);
-        stereotypeField.promptTextProperty().bindBidirectional(baseElement.getModel().getStereotypeProperty());
-        Button saveStereoButton = new Button("Save");
-        // TODO: remove save button and add setOnAction for both textFields
-        saveStereoButton.setOnAction(ev -> baseElement.getModel().setStereotype(stereotypeField.getText()));
-
-
-
-        // check button for setting object abstract
-        Label isAbstract = new Label("Abstract:");
-        isAbstract.setStyle("-fx-font-weight: bold");
-        CheckBox abstractCheck = new CheckBox();
-
-        // object is abstract
-        if (baseElement.getModel().isAbstract()) {
-            stereotypeField.setDisable(false);
-            saveStereoButton.setVisible(true);
-            abstractCheck.setSelected(true);
-        } else {
-            stereotypeField.setDisable(true);
-            saveStereoButton.setVisible(false);
-        }
-        abstractCheck.setOnAction(ev -> {
-            baseElement.getModel().setAbstract(abstractCheck.isSelected());
-            stereotypeField.setDisable(!abstractCheck.isSelected());
-            saveStereoButton.setVisible(abstractCheck.isSelected());
-        });
-
-        // name label
-        Label name = new Label("Name:");
-        name.setStyle("-fx-font-weight: bold");
-        TextField nameField = new TextField(baseElement.getModel().getName());
-        Button saveNameButton = new Button("Save");
-        saveNameButton.setOnAction(ev -> {
-            ClassDiagram baseClassDiagramModel = baseElement.getOwner().getModel();
-            if (!baseClassDiagramModel.changeClassifierName(baseElement.getModel().getName(), nameField.getText())) {
-                // TODO: error
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setContentText("Classifier with name " + nameField.getText() + " is already in use");
-                alert.show();
-            }
-        });
-
-        // add second row to grid
-        nameGrid.add(isAbstract, 0, 0);
-        nameGrid.add(abstractCheck, 1, 0);
-
-        // add first row to grid
-        nameGrid.add(stereotype, 0, 1);
-        nameGrid.add(stereotypeField, 0, 2);
-        nameGrid.add(saveStereoButton, 1, 2);
-
-        // add third row to grid
-        nameGrid.add(name, 0, 3);
-        nameGrid.add(nameField, 0, 4);
-        nameGrid.add(saveNameButton, 1, 4);
-
-        nameGrid.setMaxWidth(Double.MAX_VALUE);
+        GridPane nameGrid = createTopHeaderSection(baseElement);
         nameTP.setContent(nameGrid);
         base.getPanes().add(nameTP);
 
-        // attributes layout
-        TitledPane attributeTP = new TitledPane();
-        attributeTP.setText("Attributes");
-        ScrollPane attributeSP = new ScrollPane();
-        attributesBox = new VBox();
-
-        // add attribute button
-        Button addAttrButton = new Button("Add attribute");
-        addAttrButton.setAlignment(Pos.CENTER);
-        addAttrButton.setStyle("-fx-background-radius: 15px");
-        addAttrButton.setOnAction(ev -> {
-            UMLAttribute attr = Templates.createAttribute(baseElement.getModel(), baseElement.getOwner().getModel());
-            HBox newAttribute = createAttributeHBox(attr, null);
-            baseElement.addAttribute(attr);
-            attributesBox.getChildren().add(attributesBox.getChildren().size()-1, newAttribute);
-        });
-
-        // operations layout
-        TitledPane operationTP = new TitledPane();
-        operationTP.setText("Operations");
-        ScrollPane operationSP = new ScrollPane();
-        operationsBox = new VBox();
-
-        // add operation button
-        Button addOpButton = new Button("Add operation");
-        addOpButton.setAlignment(Pos.CENTER);
-        addOpButton.setStyle("-fx-background-radius: 15px");
-        addOpButton.setOnAction(ev -> {
-            UMLOperation attr = Templates.createOperation(baseElement.getModel(), baseElement.getOwner().getModel());
-            TitledPane listOfTitleAttributes = createAttributeTitledPane(attr);
-            HBox newAttribute = createAttributeHBox(attr, listOfTitleAttributes);
-            baseElement.addOperation(attr);
-            operationsBox.getChildren().add(operationsBox.getChildren().size()-1, newAttribute);
-            operationsBox.getChildren().add(operationsBox.getChildren().size()-1, listOfTitleAttributes);
-        });
-
-
-        // get list of attributes and operations
-        List<UMLAttribute> lofAttributes = baseElement.getModel().getAttributes();
-        for (var item : lofAttributes) {
-            if (item instanceof UMLOperation) {
-                TitledPane listOfAttributesPane = createAttributeTitledPane((UMLOperation) item);
-                HBox editBox = createAttributeHBox(item, listOfAttributesPane);
-                operationsBox.getChildren().addAll(editBox, listOfAttributesPane);
-            } else {
-                HBox editBox = createAttributeHBox(item, null);
-                attributesBox.getChildren().add(editBox);
-            }
-        }
-
-        //connect attribute layout
-        attributesBox.getChildren().add(addAttrButton);
-        addAttrButton.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(addAttrButton, Priority.ALWAYS);
-        attributesBox.setFillWidth(true);
-        attributeSP.setContent(attributesBox);
-        attributeSP.setFitToWidth(true);
-        attributeSP.setFitToHeight(true);
-
-        attributeTP.setContent(attributeSP);
-        base.getPanes().add(attributeTP);
-
-        // connect operation layout
-        operationsBox.getChildren().add(addOpButton);
-        addOpButton.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(addOpButton, Priority.ALWAYS);
-        operationsBox.setFillWidth(true);
-        operationSP.setContent(operationsBox);
-        operationSP.setFitToWidth(true);
-        operationSP.setFitToHeight(true);
-        operationSP.fitToWidthProperty();
-        operationTP.setContent(operationSP);
-        base.getPanes().add(operationTP);
+        createAttributeOperationTitledPanes(baseElement);
 
         // create relations layout
         TitledPane relationTP = new TitledPane();
         relationTP.setText("Relations");
-        ScrollPane relationsSP = new ScrollPane();
         VBox relationsVBox = new VBox();
 
         // create relations
         for (var item : baseElement.getModel().getRelations()) {
             HBox relationHBox = new HBox();
-//            relationHBox.setFillWidth(true);
             Button deleteRelationButton = new Button("Delete");
 //            TextField srcField = new TextField(item.getSrc().getName());
 
@@ -380,7 +233,6 @@ public class RightMenu {
 
             TextField destField = new TextField(content);
             destField.setEditable(false);
-            HBox.setHgrow(destField, Priority.ALWAYS);
             deleteRelationButton.setOnAction(ev -> {
                 var relationClass = baseElement.getOwner().getModel().getClass(destField.getText());
                 if (relationClass == null)
@@ -414,7 +266,6 @@ public class RightMenu {
             HBox relationHBox = new HBox();
 //            TextField srcField = new TextField();
             TextField destField = new TextField();
-            HBox.setHgrow(destField, Priority.ALWAYS);
             Button deleteRelationButton = new Button("Delete");
             destField.setOnAction(e -> {
                 var classElement = baseElement.getOwner().getModel().getClass(destField.getText());
@@ -445,18 +296,212 @@ public class RightMenu {
         });
 
         relationsVBox.getChildren().add(addRelationButton);
-        addRelationButton.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(addRelationButton, Priority.ALWAYS);
-        relationsVBox.setFillWidth(true);
-        relationsSP.setContent(relationsVBox);
-        relationsSP.setFitToHeight(true);
-        relationsSP.setFitToWidth(true);
-        relationsSP.fitToWidthProperty();
-        relationTP.setContent(relationsSP);
+        relationTP.setContent(relationsVBox);
         base.getPanes().add(relationTP);
 
         HBox.setHgrow(base, Priority.ALWAYS);
         root.getChildren().add(base);
+    }
+
+    private void createAttributeOperationTitledPanes(GClassElement baseElement) {
+        // attributes layout
+        TitledPane attributeTP = new TitledPane();
+        attributeTP.setText("Attributes");
+        ScrollPane attributeSP = new ScrollPane();
+        attributesBox = new VBox();
+
+        // operations layout
+        TitledPane operationTP = new TitledPane();
+        operationTP.setText("Operations");
+        ScrollPane operationSP = new ScrollPane();
+        operationsBox = new VBox();
+
+
+        // get list of attributes and operations
+        List<UMLAttribute> lofAttributes = baseElement.getModel().getAttributes();
+        for (var item : lofAttributes) {
+            if (item instanceof UMLOperation) {
+                TitledPane listOfAttributesPane = createAttributeTitledPane((UMLOperation) item);
+                HBox editBox = createAttributeHBox(item, listOfAttributesPane);
+                operationsBox.getChildren().addAll(editBox, listOfAttributesPane);
+            } else {
+                HBox editBox = createAttributeHBox(item, null);
+                attributesBox.getChildren().add(editBox);
+            }
+        }
+
+        // add attribute button
+        Button addAttrButton = new Button("Add attribute");
+        addAttrButton.setAlignment(Pos.CENTER);
+        addAttrButton.setStyle("-fx-background-radius: 15px");
+        // button event that adds new event
+        addAttrButton.setOnAction(ev -> {
+            UMLAttribute attr = Templates.createAttribute(baseElement.getModel(), baseElement.getOwner().getModel());
+            // check for collision
+            if (baseElement.getModel().getAttribute(attr.getName()) != null)
+                return;
+
+            HBox newAttribute = createAttributeHBox(attr, null);
+            // create undo and redo action for adding attribute
+            baseElement.getOwner().getCommandBuilder().execute(new ICommand() {
+                final int linePosition = attributesBox.getChildren().size()-1;
+                @Override
+                public void undo() {
+                    baseElement.removeAttribute(attr);
+                    baseElement.getModel().removeAttribute(attr);
+                    attributesBox.getChildren().remove(newAttribute);
+                }
+
+                @Override
+                public void redo() {
+                    execute();
+                }
+
+                @Override
+                public void execute() {
+                    baseElement.addAttribute(attr);
+                    baseElement.getModel().addAttribute(attr);
+                    attributesBox.getChildren().add(linePosition, newAttribute);
+                }
+            });
+        });
+
+        // add operation button
+        Button addOpButton = new Button("Add operation");
+        addOpButton.setAlignment(Pos.CENTER);
+        addOpButton.setStyle("-fx-background-radius: 15px");
+        addOpButton.setOnAction(ev -> {
+            UMLOperation attr = Templates.createOperation(baseElement.getModel(), baseElement.getOwner().getModel());
+            // check for collision
+            if (baseElement.getModel().getAttribute(attr.getName()) != null)
+                return;
+            TitledPane listOfTitleAttributes = createAttributeTitledPane(attr);
+            HBox newAttribute = createAttributeHBox(attr, listOfTitleAttributes);
+            // create undo and redo action
+            baseElement.getOwner().getCommandBuilder().execute(new ICommand() {
+                @Override
+                public void undo() {
+                    baseElement.removeAttribute(attr);
+                    baseElement.getModel().removeAttribute(attr);
+                    operationsBox.getChildren().removeAll(newAttribute, listOfTitleAttributes);
+                }
+
+                @Override
+                public void redo() {
+                    execute();
+                }
+
+                @Override
+                public void execute() {
+                    baseElement.addOperation(attr);
+                    baseElement.getModel().addAttribute(attr);
+                    operationsBox.getChildren().add(operationsBox.getChildren().size()-1, newAttribute);
+                    operationsBox.getChildren().add(operationsBox.getChildren().size()-1, listOfTitleAttributes);
+                }
+            });
+        });
+
+        //connect attribute layout
+        attributesBox.getChildren().add(addAttrButton);
+        HBox.setHgrow(addAttrButton, Priority.ALWAYS);
+        attributesBox.setFillWidth(true);
+        attributeSP.setContent(attributesBox);
+        attributeSP.setFitToWidth(true);
+        attributeSP.setFitToHeight(true);
+        attributeTP.setContent(attributeSP);
+
+        // connect operation layout
+        operationsBox.getChildren().add(addOpButton);
+        HBox.setHgrow(addOpButton, Priority.ALWAYS);
+        operationsBox.setFillWidth(true);
+        operationSP.setContent(operationsBox);
+        operationSP.setFitToWidth(true);
+        operationSP.setFitToHeight(true);
+        operationSP.fitToWidthProperty();
+        operationTP.setContent(operationSP);
+        base.getPanes().addAll(attributeTP, operationTP);
+    }
+
+    /**
+     * Create layout with classifier's name and abstract options.
+     */
+    private GridPane createTopHeaderSection(GClassElement baseElement) {
+        GridPane nameGrid = new GridPane();
+
+        // HBox with stereotype header, text field and save button
+        Label stereotype = new Label("Stereotype:");
+        stereotype.setStyle("-fx-font-weight: bold");
+        // init stereotype text field
+        TextField stereotypeField = new TextField(baseElement.getModel().getStereotype());
+        stereotypeField.promptTextProperty().bindBidirectional(baseElement.getModel().getStereotypeProperty());
+        stereotypeField.setOnAction(ev -> baseElement.getModel().setStereotype(stereotypeField.getText()));
+
+        // check button for setting object abstract
+        Label isAbstract = new Label("Abstract:");
+        isAbstract.setStyle("-fx-font-weight: bold");
+        CheckBox abstractCheck = new CheckBox();
+
+        // object is abstract
+        if (baseElement.getModel().isAbstract()) {
+            stereotypeField.setDisable(false);
+            abstractCheck.setSelected(true);
+        } else {
+            stereotypeField.setDisable(true);
+        }
+        abstractCheck.setOnAction(ev -> {
+            baseElement.getModel().setAbstract(abstractCheck.isSelected());
+            stereotypeField.setDisable(!abstractCheck.isSelected());
+        });
+
+
+        // name label
+        Label name = new Label("Name:");
+        name.setStyle("-fx-font-weight: bold");
+        TextField nameField = new TextField(baseElement.getModel().getName());
+        nameField.setOnAction(ev -> {
+            var classDiagram = baseElement.getOwner().getModel();
+            // check for collision of classifier names
+            if (classDiagram.getClassifier(nameField.getText()) != null) {
+                // TODO: class can replace classifier
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setContentText("Classifier with name " + nameField.getText() + " is already in use");
+                alert.show();
+            }
+
+            // create undo and redo action for classifier name update
+            baseElement.getOwner().getCommandBuilder().execute(new ICommand() {
+                final String oldName = baseElement.getModel().getName();
+                final String newName = nameField.getText();
+                @Override
+                public void undo() {
+                    classDiagram.changeClassifierName(newName, oldName);
+                }
+
+                @Override
+                public void redo() {
+                    execute();
+                }
+
+                @Override
+                public void execute() {
+                    classDiagram.changeClassifierName(oldName, newName);
+                }
+            });
+        });
+
+        // add second row to grid
+        nameGrid.add(isAbstract, 0, 0);
+        nameGrid.add(abstractCheck, 1, 0);
+
+        // add first row to grid
+        nameGrid.add(stereotype, 0, 1);
+        nameGrid.add(stereotypeField, 0, 2);
+
+        // add third row to grid
+        nameGrid.add(name, 0, 3);
+        nameGrid.add(nameField, 0, 4);
+        return nameGrid;
     }
 
 

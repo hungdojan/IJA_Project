@@ -1,5 +1,7 @@
 package ija.umleditor.models;
 
+import org.json.JSONObject;
+
 import java.util.Objects;
 
 public final class UMLRelation {
@@ -155,6 +157,9 @@ public final class UMLRelation {
                (Objects.equals(src, relation.dest) && Objects.equals(dest, relation.src));
     }
 
+    JSONObject createJsonObject() {
+        return new JSONObject();
+    }
     @Override
     public int hashCode() {
         return Objects.hash(src, dest);

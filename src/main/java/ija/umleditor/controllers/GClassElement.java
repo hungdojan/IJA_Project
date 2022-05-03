@@ -2,20 +2,18 @@ package ija.umleditor.controllers;
 
 import ija.umleditor.models.UMLAttribute;
 import ija.umleditor.models.UMLClass;
+import ija.umleditor.models.UMLClassifier;
 import ija.umleditor.models.UMLOperation;
-import javafx.animation.StrokeTransition;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
-import javafx.util.Duration;
 
 import java.util.List;
 import java.util.Objects;
@@ -46,7 +44,6 @@ public class GClassElement {
 
     public void selected(boolean b) {
         if (b) {
-//            StrokeTransition effect = new StrokeTransition(Duration.millis(2000), attributesBox, Color.BLACK, Color.color(173,216,230));
             if (attributesBox != null) {
                 attributesBox.setStyle("-fx-border-style: dashed dashed dashed dashed; -fx-border-width: 3; -fx-background-color: rgb(173,216,230)");
             }
@@ -80,7 +77,8 @@ public class GClassElement {
     }
 
     public void storeRelativePosition() {
-        relativePos =   new Point2D(baseLayout.getTranslateX(), baseLayout.getTranslateY());
+        relativePos = new Point2D(baseLayout.getTranslateX(), baseLayout.getTranslateY());
+
     }
 
     public Point2D getRelativePosition() {
@@ -102,23 +100,22 @@ public class GClassElement {
         // add attribute to set of attributes
         // when attribute with given name already exists
         // insertion is aborted and function returns false
-        if (model.addAttribute(attr)) {
-            Label attribute = new Label();
-            attribute.textProperty().bind(attr.getToStringProperty());
-            attribute.setAlignment(Pos.CENTER_LEFT);
-            attribute.setPadding(new Insets(3, 3, 3, 3));
-            attributesBox.getChildren().add(attribute);
-        } else {
-            // TODO: show warning dialog
-            Alert a = new Alert(Alert.AlertType.ERROR);
-            a.setTitle("Error");
-            a.setContentText("Cannot create attribute. Attribute/operation with identical name already exists within selected class");
-            a.show();
-        }
+        Label attribute = new Label();
+        attribute.textProperty().bind(attr.getToStringProperty());
+        attribute.setAlignment(Pos.CENTER_LEFT);
+        attribute.setPadding(new Insets(3, 3, 3, 3));
+        attributesBox.getChildren().add(attribute);
     }
 
     public void addOperation(UMLOperation oper) {
-        // TODO: check for duplicity
+        if (!model.addAttribute(oper)) {
+            Alert a = new Alert(Alert.AlertType.ERROR);
+            a.setTitle("Error");
+            a.setContentText("Cannot create operation. Attribute/operation with identical name already exists within selected class");
+            a.show();
+            return;
+        }
+
         if (operationsBox == null) {
             operationsBox = new VBox();
             operationsBox.setStyle("-fx-border-style: dashed dashed dashed dashed; -fx-border-width: 3; -fx-background-color: rgb(173,216,230)");
@@ -127,28 +124,20 @@ public class GClassElement {
         // add operation to set of attributes
         // when operation with given name already exists
         // insertion is aborted and function returns false
-        if (model.addAttribute(oper)) {
-            Label operationLabel = new Label();
-            operationLabel.textProperty().bind(oper.getToStringProperty());
-            operationLabel.setAlignment(Pos.CENTER_LEFT);
-            operationLabel.setPadding(new Insets(3, 3, 3, 3));
-            operationsBox.getChildren().add(operationLabel);
-        } else {
-            // TODO: show warning dialog
-            Alert a = new Alert(Alert.AlertType.ERROR);
-            a.setTitle("Error");
-            a.setContentText("Cannot create operation. Attribute/operation with identical name already exists within selected class");
-            a.show();
-        }
+        Label operationLabel = new Label();
+        operationLabel.textProperty().bind(oper.getToStringProperty());
+        operationLabel.setAlignment(Pos.CENTER_LEFT);
+        operationLabel.setPadding(new Insets(3, 3, 3, 3));
+        operationsBox.getChildren().add(operationLabel);
     }
 
     /**
      * Removes attribute from class element given attribute name.
      * Nothing happens if given attribute is not in class element.
-     * @param operName Attribute's name
+     * @param attrName Attribute's name
      */
-    public void removeAttribute(String operName) {
-        UMLAttribute attr = model.getAttribute(operName);
+    public void removeAttribute(String attrName) {
+        UMLAttribute attr = model.getAttribute(attrName);
         if (attr != null)
             removeAttribute(attr);
     }
@@ -159,21 +148,21 @@ public class GClassElement {
      * @param attr Instance of attribute/operation in the class element
      */
     public void removeAttribute(UMLAttribute attr) {
-        UMLAttribute foundAttr = model.removeAttribute(attr.getName());
-        if (foundAttr != null) {
+        // UMLAttribute foundAttr = model.removeAttribute(attr.getName());
+        // if (foundAttr != null) {
             // select list of nodes depending on attribute type
-            List<Node> children = foundAttr instanceof UMLOperation ?
-                                    operationsBox.getChildren() :
-                                    attributesBox.getChildren();
+        List<Node> children = attr instanceof UMLOperation ?
+                operationsBox.getChildren() :
+                attributesBox.getChildren();
 
-            // search for label in selected list of labels
-            // and removes from the list
-            Label foundLabel = (Label) children.stream()
-                    .filter(x -> Objects.equals(((Label) x).getText(), attr.toString()))
-                    .findFirst().orElse(null);
+        // search for label in selected list of labels
+        // and removes from the list
+        Label foundLabel = (Label) children.stream()
+                .filter(x -> Objects.equals(((Label) x).getText(), attr.toString()))
+                .findFirst().orElse(null);
 
-            children.remove(foundLabel);
-        }
+        children.remove(foundLabel);
+        // }
         clearVBoxes();
     }
 
@@ -191,35 +180,10 @@ public class GClassElement {
         }
     }
 
-    public GClassElement(Pane canvas, UMLClass model, GClassDiagram owner) {
-        // TODO: better model handling
-        this.model = Objects.requireNonNull(model);
-        this.owner = Objects.requireNonNull(owner);
-
-        // init base group layout and set mouse events
-        // set negative spacing to unite borders between each sections
-        baseLayout = new VBox(-3);
-        baseLayout.setOnMouseClicked(ev -> {
-            // element was dragged
-            if (selectable) {
-                this.owner.setSelectedElement(this);
-            }
-            selectable = true;
-            ev.consume();
-        });
-        baseLayout.setOnMousePressed(ev -> {
-            // store initial coordinates of mouse press
-            posX = ev.getX();
-            posY = ev.getY();
-        });
-        baseLayout.setOnMouseDragged(ev -> {
-            // ignore element selection when element is dragged
-            selectable = false;
-            // more relatively stored mouse coordination
-            baseLayout.setTranslateX(baseLayout.getTranslateX() - posX + ev.getX());
-            baseLayout.setTranslateY(baseLayout.getTranslateY() - posY + ev.getY());
-            ev.consume();
-        });
+    /**
+     * Create top box for name and stereotype.
+     */
+    private void createNameBox() {
 
         // top rectangle (class name); bind text content with class name
         nameBox = new VBox();
@@ -240,13 +204,113 @@ public class GClassElement {
         nameBox.setPadding(new Insets(3, 3, 3, 3));
         nameBox.setStyle("-fx-border-color: black; -fx-background-color: white; -fx-border-width: 3");
 
-        // TODO: how to remove if not abstract
         Label interfaceText = new Label("<<interface>>");
         interfaceText.textProperty().bind(model.getStereotypeProperty());
         interfaceText.visibleProperty().bind(model.getAbstractProperty());
         nameBox.getChildren().add(interfaceText);
         nameBox.getChildren().add(name);
 
+    }
+
+    /**
+     * Class constructor.
+     * @param canvas Main canvas to put GClassifier on.
+     * @param model Model of this gClassifier.
+     * @param owner Parent GClassDiagram instance.
+     */
+    public GClassElement(Pane canvas, UMLClass model, GClassDiagram owner) {
+        // TODO: better model handling
+        this.model = Objects.requireNonNull(model);
+        this.owner = Objects.requireNonNull(owner);
+
+        // init base group layout and set mouse events
+        // set negative spacing to unite borders between each sections
+        baseLayout = new VBox(-3);
+        baseLayout.setOnMouseClicked(ev -> {
+            // element was dragged
+            if (selectable) {
+                this.owner.setSelectedElement(this);
+            }
+            selectable = true;
+            ev.consume();
+        });
+        baseLayout.setOnMousePressed(ev -> {
+            model.setX(baseLayout.getTranslateX());
+            model.setY(baseLayout.getTranslateY());
+            // store initial coordinates of mouse press
+            posX = ev.getX();
+            posY = ev.getY();
+            ev.consume();
+        });
+        baseLayout.setOnMouseDragged(ev -> {
+            // ignore element selection when element is dragged
+            selectable = false;
+            // more relatively stored mouse coordination
+            baseLayout.setTranslateX(baseLayout.getTranslateX() - posX + ev.getX());
+            baseLayout.setTranslateY(baseLayout.getTranslateY() - posY + ev.getY());
+            ev.consume();
+        });
+        // create undo and redo actions
+        baseLayout.setOnMouseReleased(ev -> {
+            owner.getCommandBuilder().execute(new ICommand() {
+                final double origX = model.getX();
+                final double origY = model.getY();
+                final double newX  = baseLayout.getTranslateX();
+                final double newY  = baseLayout.getTranslateY();
+                @Override
+                public void undo() {
+                    model.setX(origX);
+                    model.setY(origY);
+                    baseLayout.setTranslateX(origX);
+                    baseLayout.setTranslateY(origY);
+                }
+
+                @Override
+                public void redo() {
+                    execute();
+                    baseLayout.setTranslateX(newX);
+                    baseLayout.setTranslateY(newY);
+                }
+
+                @Override
+                public void execute() {
+                    model.setX(newX);
+                    model.setY(newY);
+                }
+            });
+        });
+
+        createNameBox();
+
+        loadAttributes();
+
+        // put each sections to main box
+        baseLayout.getChildren().add(nameBox);
+        if (attributesBox != null)
+            baseLayout.getChildren().add(attributesBox);
+        if (operationsBox != null)
+            baseLayout.getChildren().add(operationsBox);
+
+        // baseLayout.setTranslateX(GClassElement.initPosX * 80);
+        // baseLayout.setTranslateY(GClassElement.initPosY * 80);
+        // if (GClassElement.initPosX * 80 + 80> canvas.getWidth()) {
+        //     GClassElement.initPosX = 0;
+        //     GClassElement.initPosY++;
+        // } else {
+        //     GClassElement.initPosX++;
+        // }
+        baseLayout.setTranslateX(model.getX());
+        baseLayout.setTranslateY(model.getY());
+
+        // place it on canvas
+        canvas.getChildren().addAll(baseLayout);
+        // relativePos = new Point2D(baseLayout.getTranslateX(), baseLayout.getTranslateY());
+    }
+
+    /**
+     * Create box from attributes and operations.
+     */
+    private void loadAttributes() {
         // add attributes and operations
         List<UMLAttribute> lofAttr = model.getAttributes();
         for (var item : lofAttr) {
@@ -269,23 +333,5 @@ public class GClassElement {
             }
         }
 
-        // put each sections to main box
-        baseLayout.getChildren().add(nameBox);
-        if (attributesBox != null)
-            baseLayout.getChildren().add(attributesBox);
-        if (operationsBox != null)
-            baseLayout.getChildren().add(operationsBox);
-
-        baseLayout.setTranslateX(GClassElement.initPosX * 80);
-        baseLayout.setTranslateY(GClassElement.initPosY * 80);
-        if (GClassElement.initPosX * 80 + 80> canvas.getWidth()) {
-            GClassElement.initPosX = 0;
-            GClassElement.initPosY++;
-        } else {
-            GClassElement.initPosX++;
-        }
-
-        // place it on canvas
-        canvas.getChildren().addAll(baseLayout);
     }
 }

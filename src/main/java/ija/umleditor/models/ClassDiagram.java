@@ -1,9 +1,9 @@
 package ija.umleditor.models;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.*;
 
 public class ClassDiagram extends Element {
 
@@ -11,6 +11,8 @@ public class ClassDiagram extends Element {
     protected List<UMLClassifier> classElements;
     /** Collection of sequence diagrams */
     protected List<SequenceDiagram> sequenceDiagrams = null;
+
+    public static UMLClassifier undefClassifier = new UMLClassifier("#UNDEF");
 
     /**
      * Class {@code ClassDiagram} constructor
@@ -257,6 +259,24 @@ public class ClassDiagram extends Element {
         return sd;
     }
 
+    public boolean addSequenceDiagram(SequenceDiagram sd) {
+        // TODO:
+        return false;
+    }
+
+    public SequenceDiagram getSequenceDiagram(String name) {
+        return null;
+    }
+
+    /**
+     * Add indefinite number of sequence diagrams.
+     * Duplicates are skipped.
+     * @param diagrams Indefinite number of sequence diagrams.
+     */
+    public void addSequenceDiagrams(SequenceDiagram... diagrams) {
+
+    }
+
     /**
      * Removes instance of sequence diagram with a given name from class diagram.
      * Returns removed diagram if found.
@@ -280,5 +300,49 @@ public class ClassDiagram extends Element {
      */
     public boolean removeSequenceDiagram(SequenceDiagram sd) {
         return sequenceDiagrams.remove(sd);
+    }
+
+    /**
+     * Clear collection of sequence diagrams.
+     */
+    public void clearSequenceDiagrams() {
+        sequenceDiagrams.clear();
+    }
+
+    @Override
+    public JSONObject createJsonObject() {
+        JSONObject object = new JSONObject();
+        object.put("_class", "ClassDiagram");
+        object.put("name", nameProperty.getValue());
+        Set<UMLRelation> setOfRelations = new HashSet<>();
+
+        // add class elements
+        JSONArray jsonClassifiers = new JSONArray();
+        for (var classifier : classElements) {
+            if (!(classifier instanceof UMLClass) && classifier.getObservers().size() < 1)
+                continue;
+            var jsonClassifier = classifier.createJsonObject();
+            jsonClassifiers.put(jsonClassifier);
+            if (classifier instanceof UMLClass)
+                setOfRelations.addAll(((UMLClass) classifier).relations);
+        }
+        object.put("classElements", jsonClassifiers);
+
+        // add sequence diagrams
+        // JSONArray jsonSequenceDiagrams = new JSONArray();
+        // for (var sequenceDiagram : sequenceDiagrams) {
+        //     var jsonSequenceDiagram = sequenceDiagram.createJsonObject();
+        //     jsonSequenceDiagrams.put(jsonSequenceDiagram);
+        // }
+        // object.append("sequenceDiagrams", jsonSequenceDiagrams);
+
+        // // add relations
+        // JSONArray jsonRelations = new JSONArray();
+        // for (var relation : setOfRelations) {
+        //     var jsonRelation = relation.createJsonObject();
+        //     jsonRelations.put(jsonRelation);
+        // }
+        // object.append("relations", jsonRelations);
+        return object;
     }
 }

@@ -1,6 +1,7 @@
 package ija.umleditor.controllers;
 
 import ija.umleditor.models.ClassDiagram;
+import ija.umleditor.models.JsonParser;
 import ija.umleditor.template.Templates;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -35,6 +36,7 @@ public class MainWindow {
      * @throws FileNotFoundException Exception is thrown in case of errors while loading assets
      */
     public void newClass() throws FileNotFoundException {
+        // save old work??
         mainTab.getTabs().clear();
         baseDiagram = new GClassDiagram(Templates.createClassDiagramModel(), mainTab);
         GClassElement.initPositions();
@@ -48,12 +50,14 @@ public class MainWindow {
         GClassElement.initPositions();
         // create opening window dialog
         FileChooser fileChooser = new FileChooser();
+        FileChooser.ExtensionFilter fileExtension = new FileChooser.ExtensionFilter("JSON file", "*.json");
+        fileChooser.getExtensionFilters().add(fileExtension);
         File selectedFile =  fileChooser.showOpenDialog(baseLayout.getScene().getWindow());
 
         // proceed to load file
         if (selectedFile.isFile()) {
             // TODO: ask to save work
-            baseDiagram = new GClassDiagram(ClassDiagram.initClassDiagramFromFile(selectedFile.getAbsolutePath()), mainTab);
+            baseDiagram = new GClassDiagram(JsonParser.initFromFile(selectedFile.getAbsolutePath()), mainTab);
         }
     }
 
@@ -63,11 +67,18 @@ public class MainWindow {
     public void storeFile() {
         // create saving window dialog
         FileChooser fileChooser = new FileChooser();
+        FileChooser.ExtensionFilter fileExtension = new FileChooser.ExtensionFilter("JSON file", "*.json");
+        fileChooser.getExtensionFilters().add(fileExtension);
         File selectedFile = fileChooser.showSaveDialog(baseLayout.getScene().getWindow());
+        if (selectedFile == null)
+            return;
+        String filePath = selectedFile.getAbsolutePath();
+        if (!filePath.endsWith(".json"))
+            filePath += ".json";
 
         // TODO: proceed to store diagram
         if (baseDiagram != null) {
-            ClassDiagram.saveClassDiagramToFile(baseDiagram.getModel(), selectedFile.getAbsolutePath());
+            JsonParser.saveToFile(baseDiagram.getModel(), filePath);
         }
     }
 

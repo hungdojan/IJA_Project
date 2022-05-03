@@ -68,6 +68,6 @@ public class Templates {
     }
 
     public static UMLAttribute createParameter(UMLOperation baseOperation, ClassDiagram baseDiagram) {
-        return (UMLAttribute) UMLClass.createAttribute(false, "Parameter"+baseOperation.getParameterCounter(), baseDiagram.getClassifier("string"));
+        return (UMLAttribute) UMLClass.createAttribute(false, "Parameter"+ UMLOperation.getParameterCounter(), baseDiagram.getClassifier("string"));
     }
 }

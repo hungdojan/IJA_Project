@@ -2,8 +2,9 @@ package ija.umleditor.models;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import org.json.JSONObject;
 
-public class Element {
+public abstract class Element {
     protected StringProperty nameProperty = new SimpleStringProperty();
 
     /**
@@ -33,4 +34,6 @@ public class Element {
     protected void setName(String name) {
         nameProperty.set(name);
     }
+
+    public abstract JSONObject createJsonObject();
 }

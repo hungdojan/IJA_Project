@@ -1,10 +1,10 @@
 module ija.umleditor {
     requires javafx.controls;
     requires javafx.fxml;
+    requires org.json;
 
     exports ija.umleditor;
     exports ija.umleditor.models;
-    exports ija.umleditor.exceptions;
     exports ija.umleditor.controllers;
     exports ija.umleditor.template;
 
