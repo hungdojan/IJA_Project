@@ -8,10 +8,12 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 // TODO: implement ISubject
-public class UMLObject extends Element implements IObserver {
+public class UMLObject extends Element implements IObserver, ISubject {
 
+    private Set<IObserver> observers;
     private UMLClass classOfInstance;
     private StringProperty toStringProperty = new SimpleStringProperty();
 
@@ -68,6 +70,11 @@ public class UMLObject extends Element implements IObserver {
         return false;
     }
 
+    public void close() {
+        if (classOfInstance != SequenceDiagram.undefClass)
+            classOfInstance.detach(this);
+    }
+
     @Override
     public void update(String msg) {
         if (Objects.equals(msg, "DELETE")) {
@@ -76,56 +83,27 @@ public class UMLObject extends Element implements IObserver {
     }
 
     @Override
-    public JSONObject createJsonObject() {
-        return null;
+    public void attach(IObserver observer) {
+        observers.add(observer);
     }
 
-//    /**
-//     * Create new instance period of the object
-//     * @param name  Instance period's name
-//     * @param start Instance period starting position
-//     * @param end   Instance period ending position
-//     * @return Newly created object's instance period; null when unsuccessful
-//     */
-//    public UMLInstancePeriod addNewPeriod(String name, int start, int end) {
-//        /*
-//        TODO: check name's existence and clear period
-//         */
-//        UMLInstancePeriod ip = instancePeriods.stream().filter(x -> Objects.equals(x.getName(), name)).findFirst().orElse(null);
-//        if (ip != null)
-//            return null;
-//
-//        ip = new UMLInstancePeriod(name, this, start, end);
-//        instancePeriods.add(ip);
-//        return ip;
-//    }
-//
-//    /**
-//     * Returns an instance period of the object at a given position
-//     * @param pos Asked position
-//     * @return Found instance; null otherwise
-//     */
-//    public UMLInstancePeriod getPeriodAtPosition(int pos) {
-//        return instancePeriods.stream().filter(x -> x.periodInRange(pos)).findFirst().orElse(null);
-//    }
-//
-//    /**
-//     * Remove instance period at a given position
-//     * @param pos Asked position
-//     * @return true when operation ended successfully
-//     */
-//    public boolean removePeriod(int pos) {
-//        UMLInstancePeriod ip = instancePeriods.stream().filter(x -> x.periodInRange(pos)).findFirst().orElse(null);
-//        return instancePeriods.remove(ip);
-//    }
-//
-//    /**
-//     * Remove instance period
-//     * @param instancePeriod Instance to remove
-//     * @return true when operation ended successfully
-//     */
-//    public boolean removePeriod(UMLInstancePeriod instancePeriod) {
-//        return instancePeriods.remove(instancePeriod);
-//    }
+    @Override
+    public void detach(IObserver observer) {
+        observers.remove(observer);
+    }
 
+    @Override
+    public void notify(String msg) {
+        for (var o : observers)
+            o.update(msg);
+    }
+
+    @Override
+    public JSONObject createJsonObject() {
+        JSONObject object = new JSONObject();
+        object.put("_class", "UMLObject");
+        object.put("name", nameProperty.getValue());
+        object.put("classOfInstance", classOfInstance.getName());
+        return object;
+    }
 }

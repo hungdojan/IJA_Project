@@ -6,8 +6,9 @@ import org.json.JSONObject;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class UMLOperation extends UMLAttribute {
+public class UMLOperation extends UMLAttribute implements ISubject {
 
+    private List<IObserver> observers;
     private final List<UMLAttribute> operationParameters;
     private static int parameterCounter = 1;
 
@@ -40,7 +41,7 @@ public class UMLOperation extends UMLAttribute {
         operationParameters = new ArrayList<>();
         for (var item : args) {
             // remove visibility of operation parameters
-            item.visibility = "";
+            item.visibility = '+';
             addParameter(item);
         }
         updateName();
@@ -71,7 +72,7 @@ public class UMLOperation extends UMLAttribute {
         // no duplicates found
         if (attribute == null) {
             // remove visibility of parameter
-            parameter.visibility = "";
+            parameter.visibility = 0;
             result = operationParameters.add(parameter);
             updateName();
         }
@@ -93,7 +94,7 @@ public class UMLOperation extends UMLAttribute {
                 .findFirst().orElse(null);
 
         // remove visibility of parameter
-        parameter.visibility = "";
+        parameter.visibility = 0;
         operationParameters.add(parameter);
         if (attribute != null) {
             operationParameters.remove(parameter);
@@ -158,6 +159,25 @@ public class UMLOperation extends UMLAttribute {
     public void clearParameters() {
         operationParameters.clear();
         updateName();
+    }
+
+    @Override
+    public void attach(IObserver observer) {
+        observers.add(observer);
+    }
+
+    @Override
+    public void detach(IObserver observer) {
+        observers.remove(observer);
+    }
+
+    @Override
+    public void notify(String msg) {
+        for (var o : observers)
+            o.update(msg);
+    }
+    public List<IObserver> getObservers() {
+        return observers;
     }
 
     @Override

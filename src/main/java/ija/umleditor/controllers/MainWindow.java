@@ -1,3 +1,14 @@
+/**
+ * @brief Starting point of the program.
+ * Initializes main structure and calls GClassDiagram.
+ *
+ * This source code serves as submission for semester assignment of class IJA at FIT, BUT 2021/22.
+ *
+ * @file MainWindow.java
+ * @date 03/05/2022
+ * @authors Hung Do      (xdohun00)
+ *          Petr Kolarik (xkolar79)
+ */
 package ija.umleditor.controllers;
 
 import ija.umleditor.models.ClassDiagram;
@@ -12,6 +23,7 @@ import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 public class MainWindow {
     @FXML
@@ -57,7 +69,11 @@ public class MainWindow {
         // proceed to load file
         if (selectedFile.isFile()) {
             // TODO: ask to save work
-            baseDiagram = new GClassDiagram(JsonParser.initFromFile(selectedFile.getAbsolutePath()), mainTab);
+            try {
+                baseDiagram = new GClassDiagram(JsonParser.initFromFile(selectedFile.getAbsolutePath()), mainTab);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

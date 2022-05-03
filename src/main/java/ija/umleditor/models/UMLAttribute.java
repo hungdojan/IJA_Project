@@ -8,7 +8,7 @@ import java.util.Objects;
 
 public class UMLAttribute extends Element implements IObserver {
 
-    protected String visibility;
+    protected Character visibility;
     protected UMLClassifier type;
     protected StringProperty toStringProperty = new SimpleStringProperty();
     public UMLOperation parent = null;
@@ -26,7 +26,7 @@ public class UMLAttribute extends Element implements IObserver {
             this.type = type;
             this.type.attach(this);
         }
-        visibility = "";
+        visibility = '+';
         toStringProperty.set(visibility + type.getName() + " " + name);
     }
 
@@ -44,7 +44,9 @@ public class UMLAttribute extends Element implements IObserver {
     }
 
     protected void updateName() {
-        toStringProperty.set(visibility + type.getName() + " " + getName());
+        toStringProperty.setValue(visibility + type.getName() + " " + getName());
+        if (parent != null)
+            parent.updateName();
     }
 
     protected void setToStringName(String value) {
@@ -55,7 +57,7 @@ public class UMLAttribute extends Element implements IObserver {
      * Returns attribute's visibility
      * @return Attribute's visibility
      */
-    public String getVisibility() {
+    public Character getVisibility() {
         return visibility;
     }
 
@@ -66,9 +68,9 @@ public class UMLAttribute extends Element implements IObserver {
      */
     public void setVisibility(Character visibility) {
         if (visibility == null || visibility == '\0') {
-            this.visibility = "";
+            this.visibility = ' ';
         } else {
-            this.visibility = visibility + " ";
+            this.visibility = visibility;
         }
         updateName();
     }
@@ -94,6 +96,9 @@ public class UMLAttribute extends Element implements IObserver {
         updateName();
     }
 
+    /**
+     * Clear resources used as observer.
+     */
     public void close() {
         if (type != ClassDiagram.undefClassifier)
             type.detach(this);
@@ -103,6 +108,8 @@ public class UMLAttribute extends Element implements IObserver {
     public void update(String msg) {
         if (Objects.equals(msg, "DELETE")) {
             type = ClassDiagram.undefClassifier;
+            updateName();
+        } else if (Objects.equals(msg, "UPDATE")) {
             updateName();
         }
     }
@@ -119,6 +126,9 @@ public class UMLAttribute extends Element implements IObserver {
 
     @Override
     public String toString() {
-        return visibility + type.getName() + " " + getName();
+        String ret = "";
+        if (visibility != 0)
+            ret += visibility;
+        return type.getName() + " " + getName();
     }
 }
