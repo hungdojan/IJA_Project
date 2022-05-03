@@ -3,6 +3,7 @@ package ija.umleditor.controllers;
 import ija.umleditor.models.UMLAttribute;
 import ija.umleditor.models.UMLClass;
 import ija.umleditor.models.UMLOperation;
+import javafx.animation.StrokeTransition;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -10,8 +11,10 @@ import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
+import javafx.util.Duration;
 
 import java.util.List;
 import java.util.Objects;
@@ -41,6 +44,7 @@ public class GClassElement {
 
     public void selected(boolean b) {
         if (b) {
+//            StrokeTransition effect = new StrokeTransition(Duration.millis(2000), attributesBox, Color.BLACK, Color.color(173,216,230));
             if (attributesBox != null) {
                 attributesBox.setStyle("-fx-border-style: dashed dashed dashed dashed; -fx-border-width: 3; -fx-background-color: rgb(173,216,230)");
             }

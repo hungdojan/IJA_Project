@@ -133,11 +133,12 @@ public class RightMenu {
     }
 
     private HBox createAttributeHBox(UMLAttribute item, TitledPane listOTitledPane) {
+        TextField visibilityField = new TextField(item.getVisibility());
         TextField typeField = new TextField(item.getType().getName());
         TextField textField = new TextField(item.getName());
         Button deleteButton = new Button("Delete");
-        HBox editBox = createHBox(typeField, textField, deleteButton);
-        HBox.setHgrow(textField, Priority.ALWAYS);
+        deleteButton.setMinWidth(65);
+        HBox editBox = createHBox(visibilityField, typeField, textField, deleteButton);
         // remove attribute event
         deleteButton.setOnAction(ev -> {
             // TODO: remove boxes when empty
@@ -149,6 +150,26 @@ public class RightMenu {
             }
             if (listOTitledPane != null) {
                 ((VBox) listOTitledPane.getParent()).getChildren().remove(listOTitledPane);
+            }
+        });
+        visibilityField.setOnAction(ev -> {
+            if (visibilityField.getText().isBlank()) {
+                // TODO: alert
+                Alert warning = new Alert(Alert.AlertType.WARNING);
+                warning.setTitle("Blank space");
+                warning.setContentText("Text field cannot be empty");
+                warning.show();
+                return;
+            }
+            var visibilityChar = visibilityField.getCharacters().charAt(0);
+            if (visibilityChar == '+' || visibilityChar == '-' || visibilityChar == '#' || visibilityChar == '~') {
+                item.setVisibility(visibilityChar);
+            }
+            else {
+                Alert warning = new Alert(Alert.AlertType.WARNING);
+                warning.setTitle("Warning");
+                warning.setContentText("Visibility can be only one of these: + - # ~");
+                warning.show();
             }
         });
         typeField.setOnAction(ev -> {
@@ -175,6 +196,10 @@ public class RightMenu {
 
             if (!modelClass.updateAttributeName(item.getName(), textField.getText())) {
                 // TODO: alert attribute already exists
+                Alert warning = new Alert(Alert.AlertType.WARNING);
+                warning.setTitle("Warning");
+                warning.setContentText("Attribute already exists");
+                warning.show();
             }
         });
         return editBox;
@@ -196,6 +221,7 @@ public class RightMenu {
         Label stereotype = new Label("Stereotype:");
         stereotype.setStyle("-fx-font-weight: bold");
         TextField stereotypeField = new TextField(baseElement.getModel().getStereotype());
+        GridPane.setHgrow(stereotypeField, Priority.ALWAYS);
         stereotypeField.promptTextProperty().bindBidirectional(baseElement.getModel().getStereotypeProperty());
         Button saveStereoButton = new Button("Save");
         // TODO: remove save button and add setOnAction for both textFields
@@ -253,6 +279,7 @@ public class RightMenu {
         nameGrid.add(nameField, 0, 4);
         nameGrid.add(saveNameButton, 1, 4);
 
+        nameGrid.setMaxWidth(Double.MAX_VALUE);
         nameTP.setContent(nameGrid);
         base.getPanes().add(nameTP);
 
@@ -308,6 +335,7 @@ public class RightMenu {
 
         //connect attribute layout
         attributesBox.getChildren().add(addAttrButton);
+        addAttrButton.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(addAttrButton, Priority.ALWAYS);
         attributesBox.setFillWidth(true);
         attributeSP.setContent(attributesBox);
@@ -319,6 +347,7 @@ public class RightMenu {
 
         // connect operation layout
         operationsBox.getChildren().add(addOpButton);
+        addOpButton.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(addOpButton, Priority.ALWAYS);
         operationsBox.setFillWidth(true);
         operationSP.setContent(operationsBox);
@@ -331,11 +360,13 @@ public class RightMenu {
         // create relations layout
         TitledPane relationTP = new TitledPane();
         relationTP.setText("Relations");
+        ScrollPane relationsSP = new ScrollPane();
         VBox relationsVBox = new VBox();
 
         // create relations
         for (var item : baseElement.getModel().getRelations()) {
             HBox relationHBox = new HBox();
+//            relationHBox.setFillWidth(true);
             Button deleteRelationButton = new Button("Delete");
 //            TextField srcField = new TextField(item.getSrc().getName());
 
@@ -349,6 +380,7 @@ public class RightMenu {
 
             TextField destField = new TextField(content);
             destField.setEditable(false);
+            HBox.setHgrow(destField, Priority.ALWAYS);
             deleteRelationButton.setOnAction(ev -> {
                 var relationClass = baseElement.getOwner().getModel().getClass(destField.getText());
                 if (relationClass == null)
@@ -382,6 +414,7 @@ public class RightMenu {
             HBox relationHBox = new HBox();
 //            TextField srcField = new TextField();
             TextField destField = new TextField();
+            HBox.setHgrow(destField, Priority.ALWAYS);
             Button deleteRelationButton = new Button("Delete");
             destField.setOnAction(e -> {
                 var classElement = baseElement.getOwner().getModel().getClass(destField.getText());
@@ -412,7 +445,14 @@ public class RightMenu {
         });
 
         relationsVBox.getChildren().add(addRelationButton);
-        relationTP.setContent(relationsVBox);
+        addRelationButton.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(addRelationButton, Priority.ALWAYS);
+        relationsVBox.setFillWidth(true);
+        relationsSP.setContent(relationsVBox);
+        relationsSP.setFitToHeight(true);
+        relationsSP.setFitToWidth(true);
+        relationsSP.fitToWidthProperty();
+        relationTP.setContent(relationsSP);
         base.getPanes().add(relationTP);
 
         HBox.setHgrow(base, Priority.ALWAYS);

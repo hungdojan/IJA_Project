@@ -111,7 +111,11 @@ public class GClassDiagram {
         createSD.setStyle("-fx-background-radius: 15px");
         createSD.setOnMouseClicked(ev -> {
             // TODO: init with model
-            new GSequenceDiagram(rootTab, new SequenceDiagram("test"));
+            try {
+                new GSequenceDiagram(rootTab, new SequenceDiagram("test"));
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
         });
 
         //TESTING BUTTON TO ADD ATTRIBUTE
