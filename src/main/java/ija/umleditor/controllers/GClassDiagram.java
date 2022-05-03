@@ -9,6 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 
@@ -25,6 +26,8 @@ public class GClassDiagram {
     private RightMenu rightMenu = null;
     private List<GClassElement> gClassElementList = new ArrayList<>();
     private List<GRelation> gRelationsList = new ArrayList<>();
+    private double posX;
+    private double posY;
 
     private final HBox content;
     private final Pane canvas;
@@ -178,6 +181,24 @@ public class GClassDiagram {
             }
             clickable = true;
         });
+        canvas.setOnMousePressed(ev -> {
+            posX = ev.getX();
+            posY = ev.getY();
+            for (var gClassElement : gClassElementList) {
+                gClassElement.storeRelativePosition();
+            }
+        });
+        // event simulating canvas move
+        canvas.setOnMouseDragged(ev -> {
+            if (ev.getButton() == MouseButton.SECONDARY) {
+                for (var gClassElement : gClassElementList) {
+                    var point = gClassElement.getRelativePosition();
+                    gClassElement.getBaseLayout().setTranslateX(point.getX() - posX + ev.getX());
+                    gClassElement.getBaseLayout().setTranslateY(point.getY() - posY + ev.getY());
+                }
+            }
+            ev.consume();
+        });
         for (var classElement : classDiagram.getClassElements()) {
             if (!(classElement instanceof UMLClass))
                 continue;
@@ -188,20 +209,6 @@ public class GClassDiagram {
         clipRect.heightProperty().bind(canvas.heightProperty());
         clipRect.widthProperty().bind(canvas.widthProperty());
         canvas.setClip(clipRect);
-        // TODO: testing pane movement
-        // canvas.setStyle("-fx-background-color: #dedede");
-        // canvas.setOnMousePressed(ev -> {
-        //     mousePanePosX = ev.getX();
-        //     mousePanePosY = ev.getY();
-        // });
-        // canvas.setOnMouseDragged(ev -> {
-        //     // TODO: move with group
-        //     clickable = false;
-        //     canvas.setTranslateX(canvas.getTranslateX() + ev.getX() - mousePanePosX);
-        //     canvas.setTranslateY(canvas.getTranslateY() + ev.getY() - mousePanePosY);
-        // });
-        // set clip
-        // TODO: end of testing
 
         // left panel with objects to create
         AnchorPane leftPane = new AnchorPane();
@@ -213,13 +220,19 @@ public class GClassDiagram {
         // event to delete selected class element with DELETE
         rootTab.setOnKeyPressed(ev -> {
             if (ev.getCode() == KeyCode.DELETE) {
-
-                if (selectedElement != null && deleteFlag) {
-                    model.removeClassElement(selectedElement.getModel());
-                    canvas.getChildren().remove(selectedElement.getBaseLayout());
-                    gClassElementList.remove(selectedElement);
-                    setSelectedElement(null);
+                if (selectedElement == null || !deleteFlag) {
+                    return;
                 }
+                for (var gRelation : gRelationsList) {
+                    if (gRelation.getModel1() == selectedElement || gRelation.getModel2() == selectedElement) {
+                       canvas.getChildren().remove(gRelation.getBaseStructure());
+                    }
+                }
+                model.removeClassElement(selectedElement.getModel());
+                // remove relations
+                canvas.getChildren().remove(selectedElement.getBaseLayout());
+                gClassElementList.remove(selectedElement);
+                setSelectedElement(null);
             }
         });
 
