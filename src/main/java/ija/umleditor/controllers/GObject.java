@@ -12,6 +12,7 @@
  */
 package ija.umleditor.controllers;
 
+import ija.umleditor.models.UMLClass;
 import ija.umleditor.models.UMLObject;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
@@ -27,10 +28,10 @@ public class GObject {
     private double posX = 0;
     private boolean selected = false;
     private boolean selectable;
-    private Label objectLabel;
+    private final Label objectLabel;
     private Line line;
     private GSequenceDiagram owner;
-    private UMLObject model;
+    private final UMLObject model;
 
     public void selected(boolean b) {
         if (b) {
@@ -96,12 +97,16 @@ public class GObject {
                 .add(objectLabel.translateXProperty()).add(objectLabel.widthProperty().divide(2)));
         line.endYProperty().bind(objectLabel.layoutYProperty().add(root.computeAreaInScreen()));
 
-        // moving with object TODO: DELETE?
+        // moving with object
         objectLabel.setOnMouseClicked(ev -> {
+            if (selectable)
+                owner.setSelectedObject(this);
+            selectable = true;
+            ev.consume();
+        });
+        objectLabel.setOnMousePressed(ev -> {
             // store initial coordinates of mouse press
-//            posX = ev.getX();
-//            posY = ev.getY();
-            owner.setSelectedObject(this);
+            posX = ev.getX();
             ev.consume();
         });
         objectLabel.setOnMouseDragged(ev -> {
@@ -115,5 +120,14 @@ public class GObject {
 
         root.getChildren().addAll(line, objectLabel);
         line.toBack();
+    }
+
+    public void setUndefinedColor(boolean isUndefined) {
+        if (isUndefined) {
+            // TODO: color red -> only border??
+        } else {
+            // TODO: color normal -> only border??
+        }
+
     }
 }
