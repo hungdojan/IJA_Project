@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class UMLClassifier extends Element implements ISubject {
     private final boolean isUserDefined;
-    private Set<IObserver> observers;
+    private final Set<IObserver> observers;
     protected double x;
     protected double y;
 

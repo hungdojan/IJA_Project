@@ -10,6 +10,7 @@ import java.util.*;
 // TODO: implement ISubject
 public class UMLObject extends Element implements IObserver, ISubject {
 
+    private double x = 0;
     private final Set<IObserver> observers;
     private UMLClass classOfInstance;
     private final StringProperty toStringProperty = new SimpleStringProperty();
@@ -18,7 +19,18 @@ public class UMLObject extends Element implements IObserver, ISubject {
         return toStringProperty;
     }
 
-    //    private final List<UMLInstancePeriod> instancePeriods;
+    public double getX() {
+        return x;
+    }
+
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    @Override
+    public void setName(String name) {
+        super.setName(name);
+    }
 
     /**
      * Class UMLObject constructor
@@ -33,8 +45,13 @@ public class UMLObject extends Element implements IObserver, ISubject {
         observers = new HashSet<>();
         // this.classOfInstance = classOfInstance;
         this.classOfInstance.attach(this);
-        toStringProperty.bind(Bindings.concat(this.classOfInstance.nameProperty, " : ", nameProperty));
+        updateName();
+        // toStringProperty.bind(Bindings.concat(this.classOfInstance.nameProperty, " : ", nameProperty));
 //        toStringProperty.set(classOfInstance.getName() + " : " + name);
+    }
+
+    public void updateName() {
+        toStringProperty.bind(Bindings.concat(classOfInstance.nameProperty, " : ", nameProperty));
     }
 
     /**
@@ -49,8 +66,11 @@ public class UMLObject extends Element implements IObserver, ISubject {
         if (classOfInstance != null && classOfInstance != SequenceDiagram.undefClass)
             classOfInstance.detach(this);
         classOfInstance = newClass;
+        if (classOfInstance == null)
+            classOfInstance = SequenceDiagram.undefClass;
         if (classOfInstance != SequenceDiagram.undefClass)
             classOfInstance.attach(this);
+        updateName();
     }
 
     /**

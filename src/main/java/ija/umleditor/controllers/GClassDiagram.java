@@ -25,7 +25,6 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.*;
 
@@ -54,6 +53,12 @@ public class GClassDiagram {
      */
     public ClassDiagram getModel() {
         return model;
+    }
+
+    public void notify(String msg) {
+        for (var sd : gSequenceDiagramList) {
+            sd.update(msg);
+        }
     }
 
     /**
@@ -94,16 +99,22 @@ public class GClassDiagram {
         ((AnchorPane) objects.get(0)).getChildren().get(0).setOnMouseClicked(ev -> {
             var createdElement = new GClassElement(canvas, (UMLClass) Templates.createClassModel(model), this);
             gClassElementList.add(createdElement);
+            // update sequence diagrams
+            notify("class");
         });
         // interface
         ((AnchorPane) objects.get(1)).getChildren().get(0).setOnMouseClicked(ev -> {
             var createdElement = new GClassElement(canvas, (UMLClass) Templates.createInterfaceModel(model), this);
             gClassElementList.add(createdElement);
+            // update sequence diagrams
+            notify("class");
         });
         // object
         ((AnchorPane) objects.get(2)).getChildren().get(0).setOnMouseClicked(ev -> {
             var createdElement = new GClassElement(canvas, (UMLClass) Templates.createEmptyClassModel(model), this);
             gClassElementList.add(createdElement);
+            // update sequence diagrams
+            notify("class");
         });
     }
 
@@ -269,6 +280,15 @@ public class GClassDiagram {
                 gRelationsList.add(gRelation);
             }
         }
+
+        tab.setContent(content);
+        rootTab.getTabs().add(tab);
+
+        for (var sequenceDiagram : classDiagram.getSequenceDiagrams()) {
+            var qSequenceDiagram = new GSequenceDiagram(rootTab, sequenceDiagram, this);
+            gSequenceDiagramList.add(qSequenceDiagram);
+        }
+
         Rectangle clipRect = new Rectangle(canvas.getWidth(), canvas.getHeight());
         clipRect.heightProperty().bind(canvas.heightProperty());
         clipRect.widthProperty().bind(canvas.widthProperty());
@@ -295,6 +315,8 @@ public class GClassDiagram {
                         model.getClassElements().add(index, element.getModel());
                         canvas.getChildren().add(element.getBaseLayout());
                         gClassElementList.add(element);
+                        // update sequence diagrams
+                        GClassDiagram.this.notify("class");
                     }
 
                     @Override
@@ -302,22 +324,23 @@ public class GClassDiagram {
                         model.removeClassElement(element.getModel());
                         canvas.getChildren().remove(element.getBaseLayout());
                         gClassElementList.remove(element);
+                        // update sequence diagrams
+                        GClassDiagram.this.notify("class");
                     }
 
                     @Override
                     public void execute() {
                         element.selected(false);
+                        // remove class element from class diagram
                         model.removeClassElement(element.getModel());
+                        // remove element from canvas
                         canvas.getChildren().remove(element.getBaseLayout());
+                        // remove gClassElement
                         gClassElementList.remove(element);
+                        // update sequence diagrams
+                        GClassDiagram.this.notify("class");
                     }
                 });
-                // remove from model
-                // model.removeClassElement(selectedElement.getModel());
-                // // remove from canvas
-                // canvas.getChildren().remove(selectedElement.getBaseLayout());
-                // // remove gClassElement from the list
-                // gClassElementList.remove(selectedElement);
                 // resets element
                 setSelectedElement(null);
             }
@@ -329,8 +352,6 @@ public class GClassDiagram {
             }
         });
 
-        tab.setContent(content);
-        rootTab.getTabs().add(tab);
     }
 
     /**

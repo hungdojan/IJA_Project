@@ -19,7 +19,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.text.Text;
 
 import java.util.List;
 import java.util.Objects;
@@ -50,18 +49,19 @@ public class RightMenu {
         attributeTP.setText("Parameters");
         VBox.setVgrow(attributeTP, Priority.ALWAYS);
         VBox attributesVBox = new VBox();
-        Button addParamButton = new Button("Add parameter");
-        addParamButton.setMaxWidth(Double.MAX_VALUE);
-        addParamButton.setAlignment(Pos.CENTER);
-        addParamButton.setStyle("-fx-background-radius: 15px");
         var commandBuilder = baseElement.getOwner().getCommandBuilder();
 
+        // load parameters
         for (var item : operation.getOperationParameters()) {
             HBox itemHBox = createParameterHBox(operation, attributesVBox, commandBuilder, item);
             attributesVBox.getChildren().add(itemHBox);
         }
 
-        attributesVBox.getChildren().add(addParamButton);
+        // create add parameter button
+        Button addParamButton = new Button("Add parameter");
+        addParamButton.setMaxWidth(Double.MAX_VALUE);
+        addParamButton.setAlignment(Pos.CENTER);
+        addParamButton.setStyle("-fx-background-radius: 15px");
         addParamButton.setOnAction(ev -> {
             UMLAttribute newAttr = Templates.createParameter(operation, baseElement.getOwner().getModel());
             HBox attrItemHBox = createParameterHBox(operation, attributesVBox, commandBuilder, newAttr);
@@ -86,6 +86,7 @@ public class RightMenu {
                 }
             });
         });
+        attributesVBox.getChildren().add(addParamButton);
         attributeTP.setContent(attributesVBox);
         attributeTP.setExpanded(false);
 
@@ -97,7 +98,7 @@ public class RightMenu {
         var deleteButton = (Button) itemHBox.getChildren().get(3);
         var typeField = (TextField) itemHBox.getChildren().get(1);
         var nameField = (TextField) itemHBox.getChildren().get(2);
-        var visibleComboBox = (ComboBox) itemHBox.getChildren().get(0);
+        // var visibleComboBox = (ComboBox) itemHBox.getChildren().get(0);
         // TODO: set visible combo box to right visibility
         item.parent = operation; // assign parent operation to notify parent operation when name is updated
         // delete button action
@@ -149,6 +150,7 @@ public class RightMenu {
                 public void undo() {
                     item.setType(oldType);
                     operation.update();
+                    // TODO: sequence diagram update??
                 }
 
                 @Override
@@ -217,11 +219,11 @@ public class RightMenu {
                             '~',
                             '#'
                     );
-            ComboBox visibilityCB = new ComboBox(options);
+            ComboBox<Character> visibilityCB = new ComboBox<>(options);
             visibilityCB.setValue(options.stream().filter(x -> item.getVisibility() == x.charValue()).findFirst().orElse(options.get(0)));
             visibilityCB.setMinWidth(60);
             visibilityCB.setOnAction(ev -> {
-                item.setVisibility((Character) visibilityCB.getValue());
+                item.setVisibility(visibilityCB.getValue());
             });
             editBox.getChildren().add(0, visibilityCB);
         }
@@ -576,6 +578,8 @@ public class RightMenu {
                 @Override
                 public void undo() {
                     classDiagram.changeClassifierName(newName, oldName);
+                    // update sequence diagrams
+                    baseElement.getOwner().notify("class");
                 }
 
                 @Override
@@ -586,6 +590,8 @@ public class RightMenu {
                 @Override
                 public void execute() {
                     classDiagram.changeClassifierName(oldName, newName);
+                    // update sequence diagrams
+                    baseElement.getOwner().notify("class");
                 }
             });
         });

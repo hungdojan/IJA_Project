@@ -14,6 +14,7 @@
 */
 package ija.umleditor.models;
 
+import javafx.collections.ObservableArray;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

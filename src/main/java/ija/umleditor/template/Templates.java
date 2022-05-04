@@ -25,6 +25,8 @@ public class Templates {
                 ClassDiagram.createClassifier("bool", false)
         );
         Templates.classCounter = 1;
+        Templates.sequenceDiagramCounter = 1;
+        Templates.objectCounter = 1;
         return model;
     }
 
