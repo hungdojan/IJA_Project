@@ -11,6 +11,7 @@
  */
 package ija.umleditor.controllers;
 
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
@@ -33,7 +34,7 @@ public class GMessage {
      * @param obj1 Starting object
      * @param obj2 Ending object
      */
-    public GMessage(Pane root, GObject obj1, GObject obj2, double count, TextField text) {
+    public GMessage(Pane root, GObject obj1, GObject obj2, double count, GObject src, String text) {
         model1 = Objects.requireNonNull(obj1);
         model2 = Objects.requireNonNull(obj2);
 
@@ -58,7 +59,7 @@ public class GMessage {
         arrow.translateXProperty().bind(msg.endXProperty().add(msg.translateXProperty()));
         arrow.translateYProperty().bind(msg.endYProperty().add(msg.translateYProperty()));
 
-        Label nameLabel = new Label(text.getText());
+        Label nameLabel = new Label(text);
         nameLabel.setLayoutY(startYPos + offsetYPos * count - 25);
         nameLabel.translateXProperty().bind(msg.endXProperty().add(nameLabel.widthProperty()).divide(2));
 
