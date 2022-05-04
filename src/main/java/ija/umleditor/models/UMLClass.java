@@ -30,11 +30,11 @@ public class UMLClass extends UMLClassifier {
         attributes = new ArrayList<>();
     }
     public int getAttributeCounter() {
-        return attributeCounter++;
+        return attributeCounter;
     }
 
     public int getOperationCounter() {
-        return operationCounter++;
+        return operationCounter;
     }
 
     public String getStereotype() {
@@ -134,9 +134,19 @@ public class UMLClass extends UMLClassifier {
 
         // nothing found
         if (attribute == null) {
+            if (attr instanceof UMLOperation)
+                operationCounter++;
+            else
+                attributeCounter++;
             return attributes.add(attr);
         }
         return false;
+    }
+
+    public void addAttributes(UMLAttribute... attrs) {
+        for (var a : attrs) {
+            addAttribute(a);
+        }
     }
 
     /**
@@ -151,6 +161,10 @@ public class UMLClass extends UMLClassifier {
                 .filter(x -> Objects.equals(x.getName(), attr.getName()))
                 .findFirst().orElse(null);
 
+        if (attr instanceof UMLOperation)
+            operationCounter++;
+        else
+            attributeCounter++;
         attributes.add(attr);
         // remove old attribute
         if (attribute != null)

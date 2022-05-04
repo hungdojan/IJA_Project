@@ -10,7 +10,10 @@
             <menus>
                 <Menu mnemonicParsing="false" text="File">
                     <items>
-                        <MenuItem mnemonicParsing="false" onAction="#newClass" text="New class diagram" />
+                        <MenuItem mnemonicParsing="false" onAction="#newClass" text="New class diagram">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="N" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
                         <MenuItem mnemonicParsing="false" onAction="#loadFile" text="Open file">
                             <accelerator>
                                 <KeyCodeCombination alt="UP" code="O" control="DOWN" meta="UP" shift="UP" shortcut="UP" />

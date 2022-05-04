@@ -19,7 +19,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.text.Text;
 
 import java.util.List;
 import java.util.Objects;
@@ -50,129 +49,153 @@ public class RightMenu {
         attributeTP.setText("Parameters");
         VBox.setVgrow(attributeTP, Priority.ALWAYS);
         VBox attributesVBox = new VBox();
+        var commandBuilder = baseElement.getOwner().getCommandBuilder();
+
+        // load parameters
+        for (var item : operation.getOperationParameters()) {
+            HBox itemHBox = createParameterHBox(operation, attributesVBox, commandBuilder, item);
+            attributesVBox.getChildren().add(itemHBox);
+        }
+
+        // create add parameter button
         Button addParamButton = new Button("Add parameter");
         addParamButton.setMaxWidth(Double.MAX_VALUE);
         addParamButton.setAlignment(Pos.CENTER);
         addParamButton.setStyle("-fx-background-radius: 15px");
-
-        for (var item : operation.getOperationParameters()) {
-            var itemHBox = createAttributeHBox(item, null, true);
-            var deleteButton = (Button) itemHBox.getChildren().get(2);
-            var typeField = (TextField) itemHBox.getChildren().get(0);
-            var nameField = (TextField) itemHBox.getChildren().get(1);
-            item.parent = operation; // assign parent operation to notify parent operation when name is updated
-            // delete button action
-            deleteButton.setOnAction(e -> {
-                // TODO: remove boxes when empty
-                operation.removeParameter(item);
-                operation.update();
-                attributesVBox.getChildren().remove(itemHBox);
-            });
-            // parameter type text field
-            typeField.setOnAction(e -> {
-                if (((TextField) itemHBox.getChildren().get(0)).getText().isBlank()) {
-                    // TODO: alert
-                    Alert warning = new Alert(Alert.AlertType.WARNING);
-                    warning.setTitle("Blank space");
-                    warning.setContentText("Text field cannot be empty");
-                    warning.show();
-                    return;
-                }
-                var type = baseElement.getOwner().getModel().getClassifier(typeField.getText());
-                if (type == null) {
-                    type = ClassDiagram.createClassifier(typeField.getText(), false);
-                    baseElement.getOwner().getModel().addClassifier(type);
-                }
-                item.setType(type);
-                // FIXME: operator is not updating
-                // item.setType(new UMLClassifier(((TextField) itemHBox.getChildren().get(0)).getText()));
-                // updates to string value
-                operation.update();
-            });
-            // parameter name text field
-            nameField.setOnAction(e -> {
-                if (((TextField) itemHBox.getChildren().get(1)).getText().isBlank()) {
-                    // TODO: alert
-                    Alert warning = new Alert(Alert.AlertType.WARNING);
-                    warning.setTitle("Blank space");
-                    warning.setContentText("Text field cannot be empty");
-                    warning.show();
-                    return;
-                }
-                if (!operation.updateParameter(item.getName(), ((TextField) itemHBox.getChildren().get(1)).getText())) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Error");
-                    alert.setContentText("Attribute with given name already exists.");
-                    alert.show();
-                }
-            });
-            attributesVBox.getChildren().add(itemHBox);
-        }
-        attributesVBox.getChildren().add(addParamButton);
         addParamButton.setOnAction(ev -> {
             UMLAttribute newAttr = Templates.createParameter(operation, baseElement.getOwner().getModel());
-            newAttr.parent = operation; // assign parent operation to notify parent operation when name is updated
-            HBox attrItemHBox = createAttributeHBox(newAttr, null, false);
-            var deleteButton = (Button) attrItemHBox.getChildren().get(2);
-            var typeField = (TextField) attrItemHBox.getChildren().get(0);
-            var nameField = (TextField) attrItemHBox.getChildren().get(1);
-            attributesVBox.getChildren().add(attributesVBox.getChildren().size()-1, attrItemHBox);
-            operation.addParameter(newAttr);
+            HBox attrItemHBox = createParameterHBox(operation, attributesVBox, commandBuilder, newAttr);
+            // create undo and redo action for parameter related actions
+            commandBuilder.execute(new ICommand() {
+                @Override
+                public void undo() {
+                    operation.removeParameter(newAttr);
+                    attributesVBox.getChildren().remove(attrItemHBox);
+                }
 
-            deleteButton.setOnAction(e -> {
-                // TODO: remove boxes when empty
-                operation.removeParameter(newAttr);
-                operation.update();
-                attributesVBox.getChildren().remove(attrItemHBox);
-            });
-            // typeField.textProperty().bind(operation.getType().getNameProperty());
-            typeField.setOnAction(e -> {
-                if (((TextField) attrItemHBox.getChildren().get(0)).getText().isBlank()) {
-                    // TODO: alert
-                    Alert warning = new Alert(Alert.AlertType.WARNING);
-                    warning.setTitle("Blank space");
-                    warning.setContentText("Text field cannot be empty");
-                    warning.show();
-                    return;
+                @Override
+                public void redo() {
+                    operation.addParameter(newAttr);
+                    attributesVBox.getChildren().add(attributesVBox.getChildren().size()-1, attrItemHBox);
                 }
-                // FIXME: operator is not updating
-                // newAttr.setType(new UMLClassifier(((TextField) attrItemHBox.getChildren().get(0)).getText()));
-                // // updates to string value
-                // operation.update();
-                var type = baseElement.getOwner().getModel().getClassifier(typeField.getText());
-                if (type == null) {
-                    type = ClassDiagram.createClassifier(typeField.getText(), false);
-                    baseElement.getOwner().getModel().addClassifier(type);
-                }
-                newAttr.setType(type);
-                // FIXME: operator is not updating
-                // item.setType(new UMLClassifier(((TextField) itemHBox.getChildren().get(0)).getText()));
-                // updates to string value
-                operation.update();
-            });
-            nameField.setOnAction(e -> {
-                if (((TextField) attrItemHBox.getChildren().get(1)).getText().isBlank()) {
-                    // TODO: alert
-                    Alert warning = new Alert(Alert.AlertType.WARNING);
-                    warning.setTitle("Blank space");
-                    warning.setContentText("Text field cannot be empty");
-                    warning.show();
-                    return;
-                }
-                if (!operation.updateParameter(newAttr.getName(), ((TextField) attrItemHBox.getChildren().get(1)).getText())) {
-                    // TODO: alert attribute already exists
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Error");
-                    alert.setContentText("Attribute with given name already exists.");
-                    alert.show();
-                }
-            });
 
+                @Override
+                public void execute() {
+                    operation.addParameter(newAttr);
+                    attributesVBox.getChildren().add(attributesVBox.getChildren().size()-1, attrItemHBox);
+                }
+            });
         });
+        attributesVBox.getChildren().add(addParamButton);
         attributeTP.setContent(attributesVBox);
         attributeTP.setExpanded(false);
 
         return attributeTP;
+    }
+
+    private HBox createParameterHBox(UMLOperation operation, VBox attributesVBox, CommandBuilder commandBuilder, UMLAttribute item) {
+        var itemHBox = createAttributeHBox(item, null, true);
+        var deleteButton = (Button) itemHBox.getChildren().get(3);
+        var typeField = (TextField) itemHBox.getChildren().get(1);
+        var nameField = (TextField) itemHBox.getChildren().get(2);
+        // var visibleComboBox = (ComboBox) itemHBox.getChildren().get(0);
+        // TODO: set visible combo box to right visibility
+        item.parent = operation; // assign parent operation to notify parent operation when name is updated
+        // delete button action
+        deleteButton.setOnAction(e -> {
+            // add undo and redo action of deleting parameter
+            commandBuilder.execute(new ICommand() {
+                final int index = attributesVBox.getChildren().indexOf(itemHBox);
+                final HBox paramHBox = itemHBox;
+                final UMLAttribute param = item;
+                @Override
+                public void undo() {
+                    operation.getOperationParameters().add(index, param);
+                    operation.update();
+                    attributesVBox.getChildren().add(index, paramHBox);
+                }
+
+                @Override
+                public void redo() {
+                    operation.removeParameter(param);
+                    operation.update();
+                    attributesVBox.getChildren().remove(paramHBox);
+                }
+
+                @Override
+                public void execute() {
+                    operation.removeParameter(param);
+                    operation.update();
+                    attributesVBox.getChildren().remove(itemHBox);
+                }
+            });
+            baseElement.clearVBoxes();
+        });
+        // parameter type text field
+        typeField.setOnAction(e -> {
+            // ignore black or unchanged fields
+            if (typeField.getText().isBlank() || Objects.equals(typeField.getText(), item.getType().getName()))
+                return;
+
+            var type = baseElement.getOwner().getModel().getClassifier(typeField.getText());
+            if (type == null) {
+                type = ClassDiagram.createClassifier(typeField.getText(), false);
+                baseElement.getOwner().getModel().addClassifier(type);
+            }
+            UMLClassifier finalType = type;
+            commandBuilder.execute(new ICommand() {
+                final UMLClassifier oldType = item.getType();
+                final UMLClassifier newType = finalType;
+                @Override
+                public void undo() {
+                    item.setType(oldType);
+                    operation.update();
+                    // TODO: sequence diagram update??
+                }
+
+                @Override
+                public void redo() {
+                    item.setType(newType);
+                    operation.update();
+                }
+
+                @Override
+                public void execute() {
+                    item.setType(newType);
+                    operation.update();
+                }
+            });
+        });
+        // parameter name text field
+        nameField.setOnAction(e -> {
+            // ignore black or unchanged fields
+            if (nameField.getText().isBlank() || Objects.equals(nameField.getText(), item.getName()))
+                return;
+
+            // found parameter with same name
+            if (operation.getParameterByName(nameField.getText()) != null)
+                return;
+
+            commandBuilder.execute(new ICommand() {
+                final String oldName = item.getName();
+                final String newName = nameField.getText();
+                @Override
+                public void undo() {
+                    operation.updateParameter(newName, oldName);
+                }
+
+                @Override
+                public void redo() {
+                    operation.updateParameter(oldName, newName);
+                }
+
+                @Override
+                public void execute() {
+                    operation.updateParameter(oldName, newName);
+                }
+            });
+        });
+        return itemHBox;
     }
 
     /**
@@ -196,11 +219,11 @@ public class RightMenu {
                             '~',
                             '#'
                     );
-            ComboBox visibilityCB = new ComboBox(options);
+            ComboBox<Character> visibilityCB = new ComboBox<>(options);
             visibilityCB.setValue(options.stream().filter(x -> item.getVisibility() == x.charValue()).findFirst().orElse(options.get(0)));
             visibilityCB.setMinWidth(60);
             visibilityCB.setOnAction(ev -> {
-                item.setVisibility((Character) visibilityCB.getValue());
+                item.setVisibility(visibilityCB.getValue());
             });
             editBox.getChildren().add(0, visibilityCB);
         }
@@ -555,6 +578,8 @@ public class RightMenu {
                 @Override
                 public void undo() {
                     classDiagram.changeClassifierName(newName, oldName);
+                    // update sequence diagrams
+                    baseElement.getOwner().notify("class");
                 }
 
                 @Override
@@ -565,6 +590,8 @@ public class RightMenu {
                 @Override
                 public void execute() {
                     classDiagram.changeClassifierName(oldName, newName);
+                    // update sequence diagrams
+                    baseElement.getOwner().notify("class");
                 }
             });
         });

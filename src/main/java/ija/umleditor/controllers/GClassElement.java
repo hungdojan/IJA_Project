@@ -31,8 +31,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class GClassElement {
-    private static int initPosX = 0;
-    private static int initPosY = 0;
+
     // position of mouse pressed
     private double posX;
     private double posY;
@@ -48,14 +47,6 @@ public class GClassElement {
     private boolean selected;
 
     private final VBox baseLayout;
-
-    /**
-     * Initial positioning of element.
-     */
-    public static void initPositions() {
-        GClassElement.initPosX = 0;
-        GClassElement.initPosY = 0;
-    }
 
     /**
      * Changes apperance of element if it is selected, otherwise sets default appearance.
@@ -112,7 +103,6 @@ public class GClassElement {
      */
     public void storeRelativePosition() {
         relativePos = new Point2D(baseLayout.getTranslateX(), baseLayout.getTranslateY());
-
     }
 
     /**
@@ -202,18 +192,17 @@ public class GClassElement {
         // search for label in selected list of labels
         // and removes from the list
         Label foundLabel = (Label) children.stream()
-                .filter(x -> Objects.equals(((Label) x).getText(), attr.toString()))
+                .filter(x -> Objects.equals(((Label) x).getText(), attr.getToStringProperty().getValue()))
                 .findFirst().orElse(null);
 
         children.remove(foundLabel);
-        // }
         clearVBoxes();
     }
 
     /**
      * Removes attribute or operation {@code VBoxes} when the layout is empty.
      */
-    private void clearVBoxes() {
+    public void clearVBoxes() {
         if (operationsBox != null && operationsBox.getChildren().size() == 0) {
             baseLayout.getChildren().remove(operationsBox);
             operationsBox = null;
@@ -294,8 +283,11 @@ public class GClassElement {
             baseLayout.setTranslateY(baseLayout.getTranslateY() - posY + ev.getY());
             ev.consume();
         });
-        // create undo and redo actions
+        // create undo and redo action for moving selected
         baseLayout.setOnMouseReleased(ev -> {
+            // ignore clicks
+            if (selectable)
+                return;
             owner.getCommandBuilder().execute(new ICommand() {
                 final double origX = model.getX();
                 final double origY = model.getY();
@@ -322,6 +314,7 @@ public class GClassElement {
                     model.setY(newY);
                 }
             });
+            ev.consume();
         });
 
         createNameBox();
@@ -335,14 +328,6 @@ public class GClassElement {
         if (operationsBox != null)
             baseLayout.getChildren().add(operationsBox);
 
-        // baseLayout.setTranslateX(GClassElement.initPosX * 80);
-        // baseLayout.setTranslateY(GClassElement.initPosY * 80);
-        // if (GClassElement.initPosX * 80 + 80> canvas.getWidth()) {
-        //     GClassElement.initPosX = 0;
-        //     GClassElement.initPosY++;
-        // } else {
-        //     GClassElement.initPosX++;
-        // }
         baseLayout.setTranslateX(model.getX());
         baseLayout.setTranslateY(model.getY());
 

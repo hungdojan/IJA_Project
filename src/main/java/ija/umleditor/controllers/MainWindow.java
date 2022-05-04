@@ -11,7 +11,6 @@
  */
 package ija.umleditor.controllers;
 
-import ija.umleditor.models.ClassDiagram;
 import ija.umleditor.models.JsonParser;
 import ija.umleditor.template.Templates;
 import javafx.application.Platform;
@@ -51,7 +50,7 @@ public class MainWindow {
         // save old work??
         mainTab.getTabs().clear();
         baseDiagram = new GClassDiagram(Templates.createClassDiagramModel(), mainTab);
-        GClassElement.initPositions();
+//        GClassElement.initPositions();
     }
 
     /**
@@ -59,7 +58,7 @@ public class MainWindow {
      * @throws FileNotFoundException Exception is thrown in case of non-existence of file.
      */
     public void loadFile() throws FileNotFoundException {
-        GClassElement.initPositions();
+//        GClassElement.initPositions();
         // create opening window dialog
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter fileExtension = new FileChooser.ExtensionFilter("JSON file", "*.json");
@@ -67,12 +66,14 @@ public class MainWindow {
         File selectedFile =  fileChooser.showOpenDialog(baseLayout.getScene().getWindow());
 
         // proceed to load file
-        if (selectedFile.isFile()) {
+        if (selectedFile != null && selectedFile.isFile()) {
             // TODO: ask to save work
+            mainTab.getTabs().clear();
             try {
                 baseDiagram = new GClassDiagram(JsonParser.initFromFile(selectedFile.getAbsolutePath()), mainTab);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                baseDiagram = new GClassDiagram(Templates.createClassDiagramModel(), mainTab);
+                // TODO: couldn't load data
             }
         }
     }

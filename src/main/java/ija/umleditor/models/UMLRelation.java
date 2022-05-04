@@ -9,8 +9,8 @@ public final class UMLRelation {
     private UMLClass src;
     private UMLClass dest;
     private RelationType relationType;
-    private String srcMsg;
-    private String destMsg;
+    private String srcMsg = "";
+    private String destMsg = "";
 
     /**
      * Class {@code UMLRelation} constructor
@@ -19,8 +19,8 @@ public final class UMLRelation {
      * @param dest Destination class
      */
     public UMLRelation(UMLClass src, UMLClass dest) {
-        this.src = src;
-        this.dest = dest;
+        this.src = Objects.requireNonNull(src);
+        this.dest = Objects.requireNonNull(dest);
         relationType = RelationType.UNDEFINED;
     }
 
@@ -31,8 +31,8 @@ public final class UMLRelation {
      * @param type Relation type
      */
     public UMLRelation(UMLClass src, UMLClass dest, RelationType type) {
-        this.src = src;
-        this.dest = dest;
+        this.src = Objects.requireNonNull(src);
+        this.dest = Objects.requireNonNull(dest);
         relationType = type;
     }
 
@@ -77,7 +77,6 @@ public final class UMLRelation {
 
     /**
      * Updates source class message.
-     * @return Source class's message
      */
     public void setSrcMsg(String srcMsg) {
         this.srcMsg = srcMsg;
@@ -93,7 +92,6 @@ public final class UMLRelation {
 
     /**
      * Updates destination class message.
-     * @return destination class's message
      */
     public void setDestMsg(String destMsg) {
         this.destMsg = destMsg;
@@ -158,7 +156,14 @@ public final class UMLRelation {
     }
 
     JSONObject createJsonObject() {
-        return new JSONObject();
+        JSONObject object = new JSONObject();
+        object.put("_class", "UMLRelation");
+        object.put("src", src.getName());
+        object.put("dest", dest.getName());
+        object.put("srcMsg", srcMsg);
+        object.put("dstMsg", destMsg);
+        object.put("relationType", relationType);
+        return object;
     }
     @Override
     public int hashCode() {

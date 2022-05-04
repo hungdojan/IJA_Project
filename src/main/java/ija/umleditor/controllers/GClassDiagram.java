@@ -15,6 +15,7 @@ import ija.umleditor.models.*;
 import ija.umleditor.template.Templates;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -24,12 +25,8 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class GClassDiagram {
     private final ClassDiagram model;
@@ -56,6 +53,12 @@ public class GClassDiagram {
      */
     public ClassDiagram getModel() {
         return model;
+    }
+
+    public void notify(String msg) {
+        for (var sd : gSequenceDiagramList) {
+            sd.update(msg);
+        }
     }
 
     /**
@@ -96,16 +99,22 @@ public class GClassDiagram {
         ((AnchorPane) objects.get(0)).getChildren().get(0).setOnMouseClicked(ev -> {
             var createdElement = new GClassElement(canvas, (UMLClass) Templates.createClassModel(model), this);
             gClassElementList.add(createdElement);
+            // update sequence diagrams
+            notify("class");
         });
         // interface
         ((AnchorPane) objects.get(1)).getChildren().get(0).setOnMouseClicked(ev -> {
             var createdElement = new GClassElement(canvas, (UMLClass) Templates.createInterfaceModel(model), this);
             gClassElementList.add(createdElement);
+            // update sequence diagrams
+            notify("class");
         });
         // object
         ((AnchorPane) objects.get(2)).getChildren().get(0).setOnMouseClicked(ev -> {
             var createdElement = new GClassElement(canvas, (UMLClass) Templates.createEmptyClassModel(model), this);
             gClassElementList.add(createdElement);
+            // update sequence diagrams
+            notify("class");
         });
     }
 
@@ -196,20 +205,90 @@ public class GClassDiagram {
         canvas.setOnMouseDragged(ev -> {
             if (ev.getButton() == MouseButton.SECONDARY) {
                 for (var gClassElement : gClassElementList) {
-                    var point = gClassElement.getRelativePosition();
-                    gClassElement.getBaseLayout().setTranslateX(point.getX() - posX + ev.getX());
-                    gClassElement.getBaseLayout().setTranslateY(point.getY() - posY + ev.getY());
+                    // var point = gClassElement.getRelativePosition();
+                    gClassElement.getBaseLayout().setTranslateX(gClassElement.getModel().getX() - posX + ev.getX());
+                    gClassElement.getBaseLayout().setTranslateY(gClassElement.getModel().getY() - posY + ev.getY());
                 }
             }
             ev.consume();
         });
+        canvas.setOnMouseReleased(ev -> {
+            if (ev.getButton() != MouseButton.SECONDARY)
+                return;
+            // create undo and redo action for moving all object on the canvas
+            commandBuilder.execute(new ICommand() {
+                final Map<UMLClassifier, Point2D> oldPos = new HashMap<>();
+                final Map<UMLClassifier, Point2D> newPos = new HashMap<>();
+                @Override
+                public void undo() {
+                    for (var elem : gClassElementList) {
+                        var oldPoint = oldPos.get(elem.getModel());
+                        elem.getModel().setX(oldPoint.getX());
+                        elem.getModel().setY(oldPoint.getY());
+                        elem.getBaseLayout().setTranslateX(oldPoint.getX());
+                        elem.getBaseLayout().setTranslateY(oldPoint.getY());
+                    }
+                }
 
+                @Override
+                public void redo() {
+                    for (var elem : gClassElementList) {
+                        var newPoint = newPos.get(elem.getModel());
+                        elem.getModel().setX(newPoint.getX());
+                        elem.getModel().setY(newPoint.getY());
+                        elem.getBaseLayout().setTranslateX(newPoint.getX());
+                        elem.getBaseLayout().setTranslateY(newPoint.getY());
+                    }
+                }
+
+                @Override
+                public void execute() {
+                    for (var elem : gClassElementList) {
+                        var oldPoint = new Point2D(elem.getModel().getX(), elem.getModel().getY());
+                        var newPoint = new Point2D(elem.getBaseLayout().getTranslateX(), elem.getBaseLayout().getTranslateY());
+                        oldPos.put(elem.getModel(), oldPoint);
+                        newPos.put(elem.getModel(), newPoint);
+                        elem.getModel().setX(elem.getBaseLayout().getTranslateX());
+                        elem.getModel().setY(elem.getBaseLayout().getTranslateY());
+                    }
+                }
+            });
+        });
+
+        // add class elements
         for (var classElement : classDiagram.getClassElements()) {
             if (!(classElement instanceof UMLClass))
                 continue;
             var createdElement = new GClassElement(canvas, (UMLClass) classElement, this);
             gClassElementList.add(createdElement);
         }
+
+        // add relations
+        List<UMLRelation> loadedRelations = new ArrayList<>();
+        for (var classes : classDiagram.getClasses()) {
+            for (var relation : classes.getRelations()) {
+                if (loadedRelations.contains(relation))
+                    continue;
+                loadedRelations.add(relation);
+                GClassElement gSrc = gClassElementList.stream().filter(x -> x.getModel() == (UMLClass) relation.getSrc())
+                        .findFirst().orElse(null);
+                GClassElement gDst = gClassElementList.stream().filter(x -> x.getModel() == (UMLClass) relation.getDest())
+                        .findFirst().orElse(null);
+                if (gSrc == null || gDst == null)
+                    continue;
+                GRelation gRelation = new GRelation(gSrc, gDst, canvas);
+                gRelationsList.add(gRelation);
+            }
+        }
+
+        tab.setContent(content);
+        rootTab.getTabs().add(tab);
+
+        for (var sequenceDiagram : classDiagram.getSequenceDiagrams()) {
+            var qSequenceDiagram = new GSequenceDiagram(rootTab, sequenceDiagram, this);
+            gSequenceDiagramList.add(qSequenceDiagram);
+        }
+
         Rectangle clipRect = new Rectangle(canvas.getWidth(), canvas.getHeight());
         clipRect.heightProperty().bind(canvas.heightProperty());
         clipRect.widthProperty().bind(canvas.widthProperty());
@@ -228,29 +307,40 @@ public class GClassDiagram {
                 if (selectedElement == null || !deleteFlag) {
                     return;
                 }
-                var command = new ICommand() {
+                commandBuilder.execute(new ICommand() {
+                    final int index = classDiagram.getClassElements().indexOf(selectedElement.getModel());
+                    final GClassElement element = selectedElement;
                     @Override
                     public void undo() {
-
+                        model.getClassElements().add(index, element.getModel());
+                        canvas.getChildren().add(element.getBaseLayout());
+                        gClassElementList.add(element);
+                        // update sequence diagrams
+                        GClassDiagram.this.notify("class");
                     }
 
                     @Override
                     public void redo() {
-
+                        model.removeClassElement(element.getModel());
+                        canvas.getChildren().remove(element.getBaseLayout());
+                        gClassElementList.remove(element);
+                        // update sequence diagrams
+                        GClassDiagram.this.notify("class");
                     }
 
                     @Override
                     public void execute() {
-
+                        element.selected(false);
+                        // remove class element from class diagram
+                        model.removeClassElement(element.getModel());
+                        // remove element from canvas
+                        canvas.getChildren().remove(element.getBaseLayout());
+                        // remove gClassElement
+                        gClassElementList.remove(element);
+                        // update sequence diagrams
+                        GClassDiagram.this.notify("class");
                     }
-                };
-                commandBuilder.execute(command);
-                // remove from model
-                model.removeClassElement(selectedElement.getModel());
-                // remove from canvas
-                canvas.getChildren().remove(selectedElement.getBaseLayout());
-                // remove gClassElement from the list
-                gClassElementList.remove(selectedElement);
+                });
                 // resets element
                 setSelectedElement(null);
             }
@@ -262,8 +352,6 @@ public class GClassDiagram {
             }
         });
 
-        tab.setContent(content);
-        rootTab.getTabs().add(tab);
     }
 
     /**
@@ -330,7 +418,7 @@ public class GClassDiagram {
     }
 
     /**
-     * Removes relation from gRelationsList and from cavnas.
+     * Removes relation from gRelationsList and from canvas.
      * @param relation Instance of GRelation to be removed
      * @return If removal was successful
      */
@@ -338,5 +426,4 @@ public class GClassDiagram {
         gRelationsList.remove(relation);
         return canvas.getChildren().remove(relation.getBaseStructure());
     }
-    // TODO: command undo-redo
 }

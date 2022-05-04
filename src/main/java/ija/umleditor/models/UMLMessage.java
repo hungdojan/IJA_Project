@@ -20,8 +20,11 @@ public class UMLMessage extends Element implements IObserver {
     public UMLMessage(String name, UMLObject sender, UMLObject receiver, UMLOperation message) {
         super(name);
         // FIXME: connection between InstancePeriods, not UMLObjects
-        this.sender = sender;
-        this.receiver = receiver;
+        setSender(sender);
+        setReceiver(receiver);
+        setMessage(message);
+        // this.sender = sender;
+        // this.receiver = receiver;
         // TODO:
     }
 
@@ -42,15 +45,34 @@ public class UMLMessage extends Element implements IObserver {
     }
 
     public void setReceiver(UMLObject receiver) {
+        if (this.receiver != null && this.receiver != SequenceDiagram.undefObject)
+            this.receiver.detach(this);
         this.receiver = receiver;
+        if (this.receiver == null)
+            this.receiver = SequenceDiagram.undefObject;
+        else if (this.receiver != SequenceDiagram.undefObject)
+            this.receiver.attach(this);
     }
 
     public void setSender(UMLObject sender) {
+        if (this.sender != null && this.sender != SequenceDiagram.undefObject)
+            this.sender.detach(this);
         this.sender = sender;
+        if (this.sender == null)
+            this.sender = SequenceDiagram.undefObject;
+        else if (this.sender != SequenceDiagram.undefObject)
+            this.sender.attach(this);
     }
 
     public void setMessage(UMLOperation message) {
+        // TODO: message is callable from receiver
+        if (this.message != null && this.message != SequenceDiagram.undefOperation)
+            this.message.detach(this);
         this.message = message;
+        if (this.message == null)
+            this.message = SequenceDiagram.undefOperation;
+        else if (this.message != SequenceDiagram.undefOperation)
+            this.message.attach(this);
     }
 
     public void close() {
@@ -61,6 +83,7 @@ public class UMLMessage extends Element implements IObserver {
             receiver.detach(this);
         }
         if (message != SequenceDiagram.undefOperation) {
+            message.detach(this);
         }
     }
 
