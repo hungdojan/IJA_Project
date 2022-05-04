@@ -9,8 +9,8 @@ import java.util.Set;
 public class UMLClassifier extends Element implements ISubject {
     private final boolean isUserDefined;
     private Set<IObserver> observers;
-    private double x;
-    private double y;
+    protected double x;
+    protected double y;
 
     public double getX() {
         return x;
@@ -98,6 +98,8 @@ public class UMLClassifier extends Element implements ISubject {
         object.put("_class", "UMLClassifier");
         object.put("name", nameProperty.getValue());
         object.put("isUserDefined", isUserDefined);
+        object.put("x", x);
+        object.put("y", y);
         return object;
     }
 }

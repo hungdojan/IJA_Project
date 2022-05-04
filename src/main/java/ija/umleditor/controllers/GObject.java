@@ -101,7 +101,9 @@ public class GObject {
             // store initial coordinates of mouse press
 //            posX = ev.getX();
 //            posY = ev.getY();
-            owner.setSelectedObject(this);
+            if (selectable)
+                owner.setSelectedObject(this);
+            selectable = true;
             ev.consume();
         });
         objectLabel.setOnMouseDragged(ev -> {
@@ -112,6 +114,11 @@ public class GObject {
 //            object.setTranslateY(object.getTranslateY() - posY + ev.getY());
             ev.consume();
         });
+        objectLabel.setOnMousePressed(ev -> {
+            posX = ev.getX();
+            ev.consume();
+        });
+
 
         root.getChildren().addAll(line, objectLabel);
         line.toBack();

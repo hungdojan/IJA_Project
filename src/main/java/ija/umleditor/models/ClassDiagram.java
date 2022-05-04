@@ -57,10 +57,11 @@ public class ClassDiagram extends Element {
 
     /**
      * Returns unmodifiable collection of class elements
+     * TODO: fix relation
      * @return Immutable collection of class elements
      */
     public List<UMLClassifier> getClassElements() {
-        return Collections.unmodifiableList(classElements);
+        return classElements;
     }
 
     /**

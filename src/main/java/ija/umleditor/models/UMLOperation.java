@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 public class UMLOperation extends UMLAttribute implements ISubject {
 
-    private List<IObserver> observers;
+    private final List<IObserver> observers;
     private final List<UMLAttribute> operationParameters;
     private static int parameterCounter = 1;
 
@@ -39,6 +39,7 @@ public class UMLOperation extends UMLAttribute implements ISubject {
     public UMLOperation(final String name, final UMLClassifier returnType, UMLAttribute...args) {
         super(name, returnType);
         operationParameters = new ArrayList<>();
+        observers = new ArrayList<>();
         for (var item : args) {
             // remove visibility of operation parameters
             item.visibility = '+';
@@ -49,10 +50,11 @@ public class UMLOperation extends UMLAttribute implements ISubject {
 
     /**
      * Returns collection of parameters of this operation.
+     * TODO: fix
      * @return Immutable collection of parameters
      */
     public List<UMLAttribute> getOperationParameters() {
-        return Collections.unmodifiableList(operationParameters);
+        return operationParameters;
     }
 
     /**

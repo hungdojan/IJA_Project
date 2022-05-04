@@ -42,7 +42,9 @@ public class Templates {
         model.addAttribute(UMLClass.createAttribute(false, "Attribute" + model.getAttributeCounter(), baseDiagram.getClassifier("void")));
         model.addAttribute(UMLClass.createAttribute(true, "Operation" + model.getOperationCounter(), baseDiagram.getClassifier("void")));
         model.addAttribute(UMLClass.createAttribute(true, "Operation" + model.getOperationCounter(), baseDiagram.getClassifier("void")));
-        baseDiagram.addClassifiers(model);
+        while (!baseDiagram.addClassifier(model)) {
+            model.setName("Class" + classCounter++);
+        }
         return model;
     }
 
@@ -52,30 +54,46 @@ public class Templates {
         model.addAttribute(UMLClass.createAttribute(true, "Operation" + model.getOperationCounter(), baseDiagram.getClassifier("void")));
         model.setAbstract(true);
         model.setStereotype("<<interface>>");
-        baseDiagram.addClassifiers(model);
+        while (!baseDiagram.addClassifier(model)) {
+            model.setName("Class" + classCounter++);
+        }
         return model;
     }
 
     /**
-     * Cretes empty class template.
+     * Creates empty class template.
      * @return Instance of empty UMLClass
      */
     public static UMLClassifier createEmptyClassModel(ClassDiagram baseDiagram) {
         var model = ClassDiagram.createClassifier("Class" + classCounter++, true);
-        baseDiagram.addClassifiers(model);
+        while (!baseDiagram.addClassifier(model)) {
+            model.setName("Class" + classCounter++);
+        }
         return model;
     }
 
     public static UMLAttribute createAttribute(UMLClass baseClass, ClassDiagram baseDiagram) {
-        return UMLClass.createAttribute(false, "Attribute" + baseClass.getAttributeCounter(), baseDiagram.getClassifier("string"));
+        var type = baseDiagram.getClassifier("string");
+        if (type == null)
+            baseDiagram.addClassifier(ClassDiagram.createClassifier("string", false));
+        type = baseDiagram.getClassifier("string");
+        return UMLClass.createAttribute(false, "Attribute" + baseClass.getAttributeCounter(), type);
     }
 
     public static UMLOperation createOperation(UMLClass baseClass, ClassDiagram baseDiagram) {
-        return (UMLOperation) UMLClass.createAttribute(true, "Operation" + baseClass.getAttributeCounter(), baseDiagram.getClassifier("string"));
+        var type = baseDiagram.getClassifier("string");
+        if (type == null)
+            baseDiagram.addClassifier(ClassDiagram.createClassifier("string", false));
+        type = baseDiagram.getClassifier("string");
+        return (UMLOperation) UMLClass.createAttribute(true, "Operation" + baseClass.getOperationCounter(), type);
     }
 
     public static UMLAttribute createParameter(UMLOperation baseOperation, ClassDiagram baseDiagram) {
-        return (UMLAttribute) UMLClass.createAttribute(false, "Parameter"+ UMLOperation.getParameterCounter(), baseDiagram.getClassifier("string"));
+        var type = baseDiagram.getClassifier("string");
+        if (type == null)
+            baseDiagram.addClassifier(ClassDiagram.createClassifier("string", false));
+        type = baseDiagram.getClassifier("string");
+        return (UMLAttribute) UMLClass.createAttribute(false, "Parameter"+ UMLOperation.getParameterCounter(), type);
     }
 
     public static UMLObject createObject() {
