@@ -14,6 +14,7 @@ import java.util.Set;
 public class UMLObject extends Element implements IObserver, ISubject {
 
     private Set<IObserver> observers;
+    private double x;
     private UMLClass classOfInstance;
     private StringProperty toStringProperty = new SimpleStringProperty();
 
@@ -21,8 +22,20 @@ public class UMLObject extends Element implements IObserver, ISubject {
         return toStringProperty;
     }
 
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    public double getX() {
+        return x;
+    }
+
     //    private final List<UMLInstancePeriod> instancePeriods;
 
+    @Override
+    public void setName(String name) {
+        super.setName(name);
+    }
     /**
      * Class UMLObject constructor
      * @param name              Object's name

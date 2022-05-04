@@ -36,17 +36,29 @@ public class GSequenceDiagram {
     private final List<GObject> gObjectList = new ArrayList<>();
     private final List<GMessage> gMessageList = new ArrayList<>();
     private final CommandBuilder commandBuilder = new CommandBuilder();
+    private final ObservableList<String> observableClassNames = FXCollections.observableArrayList();
+    public final static ObservableList<String> messageType =
+            FXCollections.observableArrayList("Sync", "Async", "Return", "Create", "Free");
+    private final ObservableList<String> observableOperations = FXCollections.observableArrayList();
+    private final ObservableList<String> observableObjects = FXCollections.observableArrayList();
     private final GClassDiagram owner;
     private GObject selectedObject;
     private Pane canvas = null;
     private GObject object = null;
     private GMessage msgLine = null;
-//    private HBox messageBox = null;
-    private Button deleteMsgButton;
+    private ScrollPane drawable;
 
     private final SequenceDiagram model;
     private int countObj = 0;
     private int countMsg = 0;
+
+    public List<GObject> getgObjectList() {
+        return gObjectList;
+    }
+
+    public Pane getCanvas() {
+        return canvas;
+    }
 
     /**
      * Class {@code GSequenceDiagram} constructor.
@@ -196,6 +208,11 @@ public class GSequenceDiagram {
 
         menuVBox.getChildren().addAll(nameLabel, nameTF, typeObjLabel, typeCB, addObject, msgLabel, addMessage, sep, deleteDiagram);
         return menuVBox;
+    }
+
+    private void addMessageLayout(VBox menuVBox) {
+        new GMessageSettings(observableObjects, menuVBox, this, countMsg);
+        countMsg++;
     }
 
     public void setSelectedObject(GObject object) {

@@ -64,4 +64,8 @@ public class GMessage {
 
         root.getChildren().addAll(msg, arrow, nameLabel);
     }
+
+    public void updateArrowHead() {
+        // TODO: rotate arrow head
+    }
 }

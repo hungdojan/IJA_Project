@@ -117,6 +117,13 @@ public class GObject {
 //            object.setTranslateY(object.getTranslateY() - posY + ev.getY());
             ev.consume();
         });
+        objectLabel.setOnMouseReleased(ev -> {
+            if (!selectable)
+                model.setX(objectLabel.getTranslateX());
+            selectable = true;
+            // TODO: updateArrowHead
+            // TODO: commandBuilder
+        });
 
         root.getChildren().addAll(line, objectLabel);
         line.toBack();
