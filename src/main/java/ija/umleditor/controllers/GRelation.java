@@ -15,6 +15,7 @@ package ija.umleditor.controllers;
 
 import javafx.geometry.Bounds;
 import javafx.scene.Group;
+import javafx.scene.control.Alert;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
@@ -59,114 +60,144 @@ private Polygon arrow;
      * @param e2 Ending element
      * @param basePane Canvas to put the relation on
      */
-    public GRelation(GClassElement e1, GClassElement e2, Pane basePane) {
+    public GRelation(GClassElement e1, GClassElement e2, Pane basePane, String type) {
         model1 = Objects.requireNonNull(e1);
         model2 = Objects.requireNonNull(e2);
 
         baseStructure = new Line();
         baseStructure.setStrokeWidth(3);
 
+        if (Objects.equals(type, "Association")) {
+            baseStructure.setStroke(Color.BLACK);
+        } else if (Objects.equals(type, "Aggregation")) {
+            baseStructure.setStroke(Color.DARKGREEN);
+        } else if (Objects.equals(type, "Composition")) {
+            baseStructure.setStroke(Color.DARKKHAKI);
+        } else if (Objects.equals(type, "Generalization")) {
+            baseStructure.setStroke(Color.DARKORANGE);
+        } else {
+            // TODO: dont draw relation
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setContentText("Type must be specified!");
+            alert.show();
+        }
+
         // get coordination of class elements
-        Bounds boundsInSceneM1 = model1.getBaseLayout().localToScene(model1.getBaseLayout().getBoundsInLocal());
-        Bounds boundsInSceneM2 = model2.getBaseLayout().localToScene(model2.getBaseLayout().getBoundsInLocal());
+//        Bounds boundsInSceneM1 = model1.getBaseLayout().localToScene(model1.getBaseLayout().getBoundsInLocal());
+//        Bounds boundsInSceneM2 = model2.getBaseLayout().localToScene(model2.getBaseLayout().getBoundsInLocal());
 
-        arrow = new Polygon();
-        arrow.getPoints().addAll(0.0, 0.0, 30.0, 8.0, 8.0, 30.0);
-        arrow.setFill(Color.BLACK);
 
-        Bounds boundsInSceneArrow = arrow.localToScene(arrow.getBoundsInLocal());
+        baseStructure.startXProperty().bind(model1.getBaseLayout().layoutXProperty()
+                .add(model1.getBaseLayout().translateXProperty()
+                        .add(model1.getBaseLayout().widthProperty().divide(2))));
+        baseStructure.startYProperty().bind(model1.getBaseLayout().layoutYProperty()
+                .add(model1.getBaseLayout().translateYProperty()
+                        .add(model1.getBaseLayout().heightProperty().divide(2))));
 
-        // destination element is on the right of the source element
-        if (boundsInSceneM1.getMaxX() <= boundsInSceneM2.getMinX()) {
-            // create connection to the first class element
-            baseStructure.startXProperty().bind(model1.getBaseLayout().layoutXProperty()
-                    .add(model1.getBaseLayout().translateXProperty()
-                            .add(model1.getBaseLayout().widthProperty())));
-            baseStructure.startYProperty().bind(model1.getBaseLayout().layoutYProperty()
-                    .add(model1.getBaseLayout().translateYProperty()
-                            .add(model1.getBaseLayout().heightProperty().divide(2))));
+        baseStructure.endXProperty().bind(model2.getBaseLayout().layoutXProperty()
+                .add(model2.getBaseLayout().translateXProperty()
+                        .add(model2.getBaseLayout().widthProperty().divide(2))));
+        baseStructure.endYProperty().bind(model2.getBaseLayout().layoutYProperty()
+                .add(model2.getBaseLayout().translateYProperty()
+                        .add(model2.getBaseLayout().heightProperty().divide(2))));
 
-            // create arrow
-            arrow.translateXProperty().bind(model2.getBaseLayout().translateXProperty()
-                    .add(model2.getBaseLayout().layoutXProperty()));
-            arrow.translateYProperty().bind((model2.getBaseLayout().translateYProperty()
-                    .add(model2.getBaseLayout().layoutYProperty()
-                            .add(model2.getBaseLayout().heightProperty().divide(2)))));
-            rotation = new Rotate(180*3.0/4.0);
-            arrow.getTransforms().add(rotation);
+//        arrow = new Polygon();
+//        arrow.getPoints().addAll(0.0, 0.0, 30.0, 8.0, 8.0, 30.0);
+//        arrow.setFill(Color.BLACK);
+//
+//        Bounds boundsInSceneArrow = arrow.localToScene(arrow.getBoundsInLocal());
 
-            // create connection to the second class element
-            baseStructure.endXProperty().bind(arrow.layoutXProperty()
-                    .add(arrow.translateXProperty()
-                            .subtract(boundsInSceneArrow.getMaxX()-5)));
-            baseStructure.endYProperty().bind(model2.getBaseLayout().layoutYProperty()
-                    .add(model2.getBaseLayout().translateYProperty()
-                            .add(model2.getBaseLayout().heightProperty().divide(2))));
-        }
-        // destination element is on the left of the source element
-        else if (boundsInSceneM1.getMinX() > boundsInSceneM2.getMaxX()) {
-            // create connection to the first class element
-            baseStructure.startXProperty().bind(model1.getBaseLayout().layoutXProperty()
-                    .add(model1.getBaseLayout().translateXProperty()));
-            baseStructure.startYProperty().bind(model1.getBaseLayout().layoutYProperty()
-                    .add(model1.getBaseLayout().translateYProperty()
-                            .add(model1.getBaseLayout().heightProperty().divide(2))));
+//        // destination element is on the right of the source element
+//        if (boundsInSceneM1.getMaxX() <= boundsInSceneM2.getMinX()) {
+//            // create connection to the first class element
+//            baseStructure.startXProperty().bind(model1.getBaseLayout().layoutXProperty()
+//                    .add(model1.getBaseLayout().translateXProperty()
+//                            .add(model1.getBaseLayout().widthProperty())));
+//            baseStructure.startYProperty().bind(model1.getBaseLayout().layoutYProperty()
+//                    .add(model1.getBaseLayout().translateYProperty()
+//                            .add(model1.getBaseLayout().heightProperty().divide(2))));
+//
+//            // create arrow
+//            arrow.translateXProperty().bind(model2.getBaseLayout().translateXProperty()
+//                    .add(model2.getBaseLayout().layoutXProperty()));
+//            arrow.translateYProperty().bind((model2.getBaseLayout().translateYProperty()
+//                    .add(model2.getBaseLayout().layoutYProperty()
+//                            .add(model2.getBaseLayout().heightProperty().divide(2)))));
+//            rotation = new Rotate(180*3.0/4.0);
+//            arrow.getTransforms().add(rotation);
+//
+//            // create connection to the second class element
+//            baseStructure.endXProperty().bind(arrow.layoutXProperty()
+//                    .add(arrow.translateXProperty()
+//                            .subtract(boundsInSceneArrow.getMaxX()-5)));
+//            baseStructure.endYProperty().bind(model2.getBaseLayout().layoutYProperty()
+//                    .add(model2.getBaseLayout().translateYProperty()
+//                            .add(model2.getBaseLayout().heightProperty().divide(2))));
+//        }
+//        // destination element is on the left of the source element
+//        else if (boundsInSceneM1.getMinX() > boundsInSceneM2.getMaxX()) {
+//            // create connection to the first class element
+//            baseStructure.startXProperty().bind(model1.getBaseLayout().layoutXProperty()
+//                    .add(model1.getBaseLayout().translateXProperty()));
+//            baseStructure.startYProperty().bind(model1.getBaseLayout().layoutYProperty()
+//                    .add(model1.getBaseLayout().translateYProperty()
+//                            .add(model1.getBaseLayout().heightProperty().divide(2))));
+//
+//            // create arrow
+//            arrow.translateXProperty().bind(model2.getBaseLayout().translateXProperty()
+//                    .add(model2.getBaseLayout().layoutXProperty()
+//                            .add(model2.getBaseLayout().widthProperty())));
+//            arrow.translateYProperty().bind((model2.getBaseLayout().translateYProperty()
+//                    .add(model2.getBaseLayout().layoutYProperty()
+//                            .add(model2.getBaseLayout().heightProperty().divide(2)))));
+//            rotation = new Rotate(-45);
+//            arrow.getTransforms().add(rotation);
+//
+//            // create connection to the second class element
+//            baseStructure.endXProperty().bind(arrow.layoutXProperty()
+//                    .add(arrow.translateXProperty()
+//                            .add(boundsInSceneArrow.getMaxX()-5)));
+//            baseStructure.endYProperty().bind(model2.getBaseLayout().layoutYProperty()
+//                    .add(model2.getBaseLayout().translateYProperty()
+//                            .add(model2.getBaseLayout().heightProperty().divide(2))));
+//        }
+//        // destination element is below the source element
+//        else if (boundsInSceneM1.getMaxY() <= boundsInSceneM2.getMinY()) {
+//            // create connection to the first class element
+//            baseStructure.startXProperty().bind(model1.getBaseLayout().layoutXProperty()
+//                    .add(model1.getBaseLayout().translateXProperty()
+//                            .add(model1.getBaseLayout().widthProperty().divide(2))));
+//            baseStructure.startYProperty().bind(model1.getBaseLayout().layoutYProperty()
+//                    .add(model1.getBaseLayout().translateYProperty()
+//                            .add(model1.getBaseLayout().heightProperty())));
+//
+//            // create connection to the second class element
+//            baseStructure.endXProperty().bind(model2.getBaseLayout().layoutXProperty()
+//                    .add(model2.getBaseLayout().translateXProperty()
+//                            .add(model2.getBaseLayout().widthProperty().divide(2))));
+//            baseStructure.endYProperty().bind(model2.getBaseLayout().layoutYProperty()
+//                    .add(model2.getBaseLayout().translateYProperty()));
+//        }
+//        // destination element is above the source element
+//        else {
+//            // create connection to the first class element
+//            baseStructure.startXProperty().bind(model1.getBaseLayout().layoutXProperty()
+//                    .add(model1.getBaseLayout().translateXProperty()
+//                            .add(model1.getBaseLayout().widthProperty().divide(2))));
+//            baseStructure.startYProperty().bind(model1.getBaseLayout().layoutYProperty()
+//                    .add(model1.getBaseLayout().translateYProperty()));
+//
+//            // create connection to the second class element
+//            baseStructure.endXProperty().bind(model2.getBaseLayout().layoutXProperty()
+//                    .add(model2.getBaseLayout().translateXProperty()
+//                            .add(model2.getBaseLayout().widthProperty().divide(2))));
+//            baseStructure.endYProperty().bind(model2.getBaseLayout().layoutYProperty()
+//                    .add(model2.getBaseLayout().translateYProperty()
+//                            .add(model2.getBaseLayout().heightProperty())));
+//        }
 
-            // create arrow
-            arrow.translateXProperty().bind(model2.getBaseLayout().translateXProperty()
-                    .add(model2.getBaseLayout().layoutXProperty()
-                            .add(model2.getBaseLayout().widthProperty())));
-            arrow.translateYProperty().bind((model2.getBaseLayout().translateYProperty()
-                    .add(model2.getBaseLayout().layoutYProperty()
-                            .add(model2.getBaseLayout().heightProperty().divide(2)))));
-            rotation = new Rotate(-45);
-            arrow.getTransforms().add(rotation);
-
-            // create connection to the second class element
-            baseStructure.endXProperty().bind(arrow.layoutXProperty()
-                    .add(arrow.translateXProperty()
-                            .add(boundsInSceneArrow.getMaxX()-5)));
-            baseStructure.endYProperty().bind(model2.getBaseLayout().layoutYProperty()
-                    .add(model2.getBaseLayout().translateYProperty()
-                            .add(model2.getBaseLayout().heightProperty().divide(2))));
-        }
-        // destination element is below the source element
-        else if (boundsInSceneM1.getMaxY() <= boundsInSceneM2.getMinY()) {
-            // create connection to the first class element
-            baseStructure.startXProperty().bind(model1.getBaseLayout().layoutXProperty()
-                    .add(model1.getBaseLayout().translateXProperty()
-                            .add(model1.getBaseLayout().widthProperty().divide(2))));
-            baseStructure.startYProperty().bind(model1.getBaseLayout().layoutYProperty()
-                    .add(model1.getBaseLayout().translateYProperty()
-                            .add(model1.getBaseLayout().heightProperty())));
-
-            // create connection to the second class element
-            baseStructure.endXProperty().bind(model2.getBaseLayout().layoutXProperty()
-                    .add(model2.getBaseLayout().translateXProperty()
-                            .add(model2.getBaseLayout().widthProperty().divide(2))));
-            baseStructure.endYProperty().bind(model2.getBaseLayout().layoutYProperty()
-                    .add(model2.getBaseLayout().translateYProperty()));
-        }
-        // destination element is above the source element
-        else {
-            // create connection to the first class element
-            baseStructure.startXProperty().bind(model1.getBaseLayout().layoutXProperty()
-                    .add(model1.getBaseLayout().translateXProperty()
-                            .add(model1.getBaseLayout().widthProperty().divide(2))));
-            baseStructure.startYProperty().bind(model1.getBaseLayout().layoutYProperty()
-                    .add(model1.getBaseLayout().translateYProperty()));
-
-            // create connection to the second class element
-            baseStructure.endXProperty().bind(model2.getBaseLayout().layoutXProperty()
-                    .add(model2.getBaseLayout().translateXProperty()
-                            .add(model2.getBaseLayout().widthProperty().divide(2))));
-            baseStructure.endYProperty().bind(model2.getBaseLayout().layoutYProperty()
-                    .add(model2.getBaseLayout().translateYProperty()
-                            .add(model2.getBaseLayout().heightProperty())));
-        }
-
-        basePane.getChildren().addAll(baseStructure, arrow);
-        arrow.toBack();
+        basePane.getChildren().addAll(baseStructure);
         baseStructure.toBack();
     }
 }

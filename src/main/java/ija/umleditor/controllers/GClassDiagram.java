@@ -276,7 +276,7 @@ public class GClassDiagram {
                         .findFirst().orElse(null);
                 if (gSrc == null || gDst == null)
                     continue;
-                GRelation gRelation = new GRelation(gSrc, gDst, canvas);
+                GRelation gRelation = new GRelation(gSrc, gDst, canvas, relation.getRelationType().toString());
                 gRelationsList.add(gRelation);
             }
         }
