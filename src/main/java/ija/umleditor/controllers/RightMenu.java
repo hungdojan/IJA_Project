@@ -343,7 +343,7 @@ public class RightMenu {
             TextField directionField = new TextField(content);
             directionField.setEditable(false);
             deleteRelationButton.setOnAction(ev -> {
-                var relationClass = baseElement.getOwner().getModel().getClass(destField.getText());
+                var relationClass = baseElement.getOwner().getModel().getClass(directionField.getText());
                 if (relationClass == null)
                     return;
                 baseElement.getModel().removeRelationWithClass(relationClass);
@@ -381,9 +381,10 @@ public class RightMenu {
             });
             relationGrid.add(directionLabel, 0, 0);
             relationGrid.add(typeLabel, 1, 0);
-            relationGrid.add(destField, 0, 1);
+            relationGrid.add(directionField, 0, 1);
             relationGrid.add(typesCB, 1, 1);
-            relationGrid.add(deleteRelationButton, 2, 1);
+            relationGrid.add(swapButton, 2, 1);
+            relationGrid.add(deleteRelationButton, 3, 1);
 
             ClassDiagram baseClassDiagram = baseElement.getOwner().getModel();
             if (baseElement.getOwner().getRelation((UMLClass) item.getSrc(), (UMLClass) item.getDest()) == null) {
