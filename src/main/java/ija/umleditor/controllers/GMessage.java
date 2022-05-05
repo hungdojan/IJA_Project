@@ -67,8 +67,8 @@ public class GMessage {
         String text = model.getName();
 
         // create line
-        Line msg = new Line();
-        msg.setStrokeWidth(2);
+        msgLine = new Line();
+        msgLine.setStrokeWidth(2);
 
         // bind line to objects
         msgLine.startXProperty().bind(srcGObject.getObjectLabel().layoutXProperty()
@@ -78,20 +78,27 @@ public class GMessage {
                 .add(dstGObject.getObjectLabel().translateXProperty().add(dstGObject.getObjectLabel().widthProperty().divide(2))));
         msgLine.setEndY(startYPos + offsetYPos * count);
 
-        // create arrow
-        Polygon arrow = new Polygon();
+        Label nameLabel = new Label();
+        nameLabel.textProperty().bind(labelText);
+        nameLabel.setLayoutY(startYPos + offsetYPos * count - 25);
+        nameLabel.translateXProperty().bind(msgLine.endXProperty().add(nameLabel.widthProperty()).divide(2));
+        updateText();
+
+        arrow = new Polygon();
         arrow.getPoints().addAll(0.0, 0.0, 20.0, 8.0, 8.0, 20.0);
         arrow.setFill(Color.BLACK);
         Rotate rotation = new Rotate(3.0/4.0*180);
         arrow.getTransforms().add(rotation);
-        arrow.translateXProperty().bind(msg.endXProperty().add(msg.translateXProperty()));
-        arrow.translateYProperty().bind(msg.endYProperty().add(msg.translateYProperty()));
+        arrow.translateXProperty().bind(msgLine.endXProperty().add(msgLine.translateXProperty()));
+        arrow.translateYProperty().bind(msgLine.endYProperty().add(msgLine.translateYProperty()));
+        pointLeft = srcGObject.getObjectLabel().getLayoutX() > dstGObject.getObjectLabel().getLayoutX();
+        // turn arrow if it goes to the left
+        if (pointLeft) {
+            Rotate rotation2 = new Rotate(180);
+            arrow.getTransforms().add(rotation2);
+        }
 
-        Label nameLabel = new Label(text);
-        nameLabel.setLayoutY(startYPos + offsetYPos * count - 25);
-        nameLabel.translateXProperty().bind(msg.endXProperty().add(nameLabel.widthProperty()).divide(2));
-
-        root.getChildren().addAll(msg, arrow, nameLabel);
+        root.getChildren().addAll(msgLine, arrow, nameLabel);
     }
 
     /**
