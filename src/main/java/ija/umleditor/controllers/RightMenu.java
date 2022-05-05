@@ -28,9 +28,19 @@ public class RightMenu {
     private GClassElement baseElement;
     private VBox operationsBox;
     private VBox attributesBox;
+    private ComboBox<String> typesCB;
 
     public Accordion getBase() {
         return base;
+    }
+
+    private Node getNodeFromGridPane(GridPane gridPane, int col, int row) {
+        for (Node child : gridPane.getChildren()) {
+            if (GridPane.getColumnIndex(child) == col && GridPane.getRowIndex(child) == row) {
+                return child;
+            }
+        }
+        return null;
     }
 
     private HBox createHBox(Node... nodes) {
@@ -307,9 +317,9 @@ public class RightMenu {
         relationTP.setText("Relations");
         VBox relationsVBox = new VBox();
 
-        // create relations
+        // already existing relations
         for (var item : baseElement.getModel().getRelations()) {
-            HBox relationHBox = new HBox();
+            GridPane relationGrid = new GridPane();
             Button deleteRelationButton = new Button("Delete");
 //            TextField srcField = new TextField(item.getSrc().getName());
 
@@ -321,6 +331,7 @@ public class RightMenu {
                 content = item.getDest().getName();
             }
 
+            Label destLabel = new Label("Destination:");
             TextField destField = new TextField(content);
             destField.setEditable(false);
             deleteRelationButton.setOnAction(ev -> {
@@ -329,34 +340,77 @@ public class RightMenu {
                     return;
                 baseElement.getModel().removeRelationWithClass(relationClass);
                 baseElement.getOwner().removeRelation(baseElement.getOwner().getRelation(baseElement.getModel(), relationClass));
-                relationsVBox.getChildren().remove(relationHBox);
+                relationsVBox.getChildren().remove(relationGrid);
             });
+
+            Label typeLabel = new Label("Type:");
+//            Label pickedTypeLabel = new Label("selected type");
+            ObservableList<String> relationTypes =
+                    FXCollections.observableArrayList(
+                            "Association",
+                            "Aggregation",
+                            "Composition",
+                            "Generalization"
+                    );
+            typesCB = new ComboBox<>(relationTypes);
+//            typesCB.setValue();
+
+            relationGrid.add(destLabel, 0, 0);
+            relationGrid.add(typeLabel, 1, 0);
+            relationGrid.add(destField, 0, 1);
+            relationGrid.add(typesCB, 1, 1);
+            relationGrid.add(deleteRelationButton, 2, 1);
+
             ClassDiagram baseClassDiagram = baseElement.getOwner().getModel();
             if (baseElement.getOwner().getRelation((UMLClass) item.getSrc(), (UMLClass) item.getDest()) == null) {
-                baseElement.getOwner().addRelation(new GRelation(baseElement, baseElement.getOwner().getClassElement(baseClassDiagram.getClass(content)), baseElement.getOwner().getCanvas()));
+                baseElement.getOwner().addRelation(new GRelation(
+                        baseElement, baseElement.getOwner().getClassElement(baseClassDiagram.getClass(content)), baseElement.getOwner().getCanvas(), typesCB.getValue()));
             }
-            relationHBox.getChildren().addAll(destField, deleteRelationButton);
-            relationsVBox.getChildren().add(relationHBox);
+
+//            relationGrid.getChildren().addAll(destField, deleteRelationButton);
+            relationsVBox.getChildren().add(relationGrid);
         }
 
+        // create brand-new relation
         Button addRelationButton = new Button("Add relation");
         addRelationButton.setAlignment(Pos.CENTER);
         addRelationButton.setMaxWidth(Double.MAX_VALUE);
         addRelationButton.setStyle("-fx-background-radius: 15px");
+        relationsVBox.getChildren().add(addRelationButton);
         addRelationButton.setOnAction(ev -> {
             // create a constraint so that user can only add max one new relations
             // if the text field is still editable (meaning no relation was created)
             // no new row will be created
             if (relationsVBox.getChildren().size() > 1) {
-                HBox hBox = (HBox) relationsVBox.getChildren().get(relationsVBox.getChildren().size() - 2);
-                TextField lastTextField = (TextField) hBox.getChildren().get(0);
+                GridPane gridPane = (GridPane) relationsVBox.getChildren().get(relationsVBox.getChildren().size() - 2);
+                TextField lastTextField = (TextField) getNodeFromGridPane(gridPane, 0, 1);
                 if (lastTextField.isEditable())
                     return;
             }
-            HBox relationHBox = new HBox();
+            GridPane relationGrid = new GridPane();
+            Label destLabel = new Label("Destination:");
             TextField destField = new TextField();
             Button deleteRelationButton = new Button("Delete");
-            destField.setOnAction(e -> {
+            Button drawRelationButton = new Button("Draw");
+
+            Label typeLabel = new Label("Select type:");
+            ObservableList<String> relationTypes =
+                    FXCollections.observableArrayList(
+                            "Association",
+                            "Aggregation",
+                            "Composition",
+                            "Generalization"
+                    );
+            ComboBox<String> typesCB = new ComboBox<>(relationTypes);
+
+            relationGrid.add(destLabel, 0, 0);
+            relationGrid.add(typeLabel, 1, 0);
+            relationGrid.add(destField, 0, 1);
+            relationGrid.add(typesCB, 1, 1);
+            relationGrid.add(drawRelationButton, 2, 1);
+            relationGrid.add(deleteRelationButton, 3, 1);
+
+            drawRelationButton.setOnAction(e -> {
                 var classElement = baseElement.getOwner().getModel().getClass(destField.getText());
                 if (classElement == null) {
                     // TODO: alert error
@@ -365,7 +419,8 @@ public class RightMenu {
                         // TODO: alert existing relation
                         return;
                     }
-                    baseElement.getOwner().addRelation(new GRelation(baseElement, baseElement.getOwner().getClassElement(classElement), baseElement.getOwner().getCanvas()));
+                    baseElement.getOwner().addRelation(
+                            new GRelation(baseElement, baseElement.getOwner().getClassElement(classElement), baseElement.getOwner().getCanvas(), typesCB.getValue()));
                     destField.setEditable(false);
                 }
             });
@@ -377,16 +432,16 @@ public class RightMenu {
                     return;
                 baseElement.getModel().removeRelationWithClass(relationClass);
                 baseElement.getOwner().removeRelation(baseElement.getOwner().getRelation(baseElement.getModel(), relationClass));
-                relationsVBox.getChildren().remove(relationHBox);
+                relationsVBox.getChildren().remove(relationGrid);
                 // TODO: remove gRelation from the canvas
             });
-            relationHBox.getChildren().addAll(destField, deleteRelationButton);
-            relationHBox.setMaxWidth(Double.MAX_VALUE);
+
+//            relationGrid.getChildren().addAll(destField, deleteRelationButton);
+            relationGrid.setMaxWidth(Double.MAX_VALUE);
             HBox.setHgrow(destField, Priority.ALWAYS);
-            relationsVBox.getChildren().add(relationsVBox.getChildren().size()-1, relationHBox);
+            relationsVBox.getChildren().add(relationsVBox.getChildren().size()-1, relationGrid);
         });
 
-        relationsVBox.getChildren().add(addRelationButton);
         relationTP.setContent(relationsVBox);
         base.getPanes().add(relationTP);
 
