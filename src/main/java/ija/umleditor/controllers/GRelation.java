@@ -13,8 +13,8 @@
  */
 package ija.umleditor.controllers;
 
-import javafx.geometry.Bounds;
-import javafx.scene.Group;
+import ija.umleditor.models.UMLRelation;
+import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -25,8 +25,9 @@ import javafx.scene.transform.Rotate;
 import java.util.Objects;
 
 public class GRelation {
-    private final GClassElement model1;
-    private final GClassElement model2;
+    private final UMLRelation model;
+    private final GClassElement srcClass;
+    private final GClassElement destClass;
     private final Line baseStructure;
     private Rotate rotation;
 private Polygon arrow;
@@ -67,26 +68,19 @@ private Polygon arrow;
         baseStructure = new Line();
         baseStructure.setStrokeWidth(3);
 
-        if (Objects.equals(type, "Association")) {
-            baseStructure.setStroke(Color.BLACK);
-        } else if (Objects.equals(type, "Aggregation")) {
-            baseStructure.setStroke(Color.DARKGREEN);
-        } else if (Objects.equals(type, "Composition")) {
-            baseStructure.setStroke(Color.DARKKHAKI);
-        } else if (Objects.equals(type, "Generalization")) {
-            baseStructure.setStroke(Color.DARKORANGE);
-        } else {
-            // TODO: dont draw relation
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setContentText("Type must be specified!");
-            alert.show();
-        }
+        updateColor();
 
-        // get coordination of class elements
-//        Bounds boundsInSceneM1 = model1.getBaseLayout().localToScene(model1.getBaseLayout().getBoundsInLocal());
-//        Bounds boundsInSceneM2 = model2.getBaseLayout().localToScene(model2.getBaseLayout().getBoundsInLocal());
-
+//
+//        if (Objects.equals(type, "Association")) {
+//        } else if (Objects.equals(type, "Aggregation")) {
+//        } else if (Objects.equals(type, "Composition")) {
+//        } else if (Objects.equals(type, "Generalization")) {
+//        } else {
+//            Alert alert = new Alert(Alert.AlertType.ERROR);
+//            alert.setTitle("Error");
+//            alert.setContentText("Type must be specified!");
+//            alert.show();
+//        }
 
         baseStructure.startXProperty().bind(model1.getBaseLayout().layoutXProperty()
                 .add(model1.getBaseLayout().translateXProperty()
@@ -199,5 +193,34 @@ private Polygon arrow;
 
         basePane.getChildren().addAll(baseStructure);
         baseStructure.toBack();
+    }
+
+    public void swapDirection() {
+        // TODO: swap direction
+        model.swapDirection();
+    }
+
+    public void updateColor() {
+        // TODO:
+        switch(model.getRelationType()) {
+            case ASSOCIATION:
+                baseStructure.setStroke(Color.BLACK);
+                break;
+            case AGGREGATION:
+                baseStructure.setStroke(Color.DARKGREEN);
+                break;
+            case COMPOSITION:
+                baseStructure.setStroke(Color.DARKBLUE);
+                break;
+            case INHERITANCE:
+                baseStructure.setStroke(Color.DARKORANGE);
+                break;
+            default:
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setContentText("Type must be specified!");
+                alert.show();
+                break;
+        }
     }
 }

@@ -21,7 +21,7 @@ public final class UMLRelation {
     public UMLRelation(UMLClass src, UMLClass dest) {
         this.src = Objects.requireNonNull(src);
         this.dest = Objects.requireNonNull(dest);
-        relationType = RelationType.UNDEFINED;
+        relationType = RelationType.ASSOCIATION;
     }
 
     /**

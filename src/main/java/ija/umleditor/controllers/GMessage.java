@@ -27,8 +27,9 @@ public class GMessage {
     private final UMLMessage model;
     private GObject srcGObject;
     private GObject dstGObject;
-    private Polygon arrow;
-    private Line msgLine;
+    private final Polygon arrow;
+    private final Line msgLine;
+    private final Label nameLabel;
     private final double startYPos = 100;
     private final double offsetYPos = 50;
     private final StringProperty labelText = new SimpleStringProperty();
@@ -78,7 +79,7 @@ public class GMessage {
                 .add(dstGObject.getObjectLabel().translateXProperty().add(dstGObject.getObjectLabel().widthProperty().divide(2))));
         msgLine.setEndY(startYPos + offsetYPos * count);
 
-        Label nameLabel = new Label();
+        nameLabel = new Label();
         nameLabel.textProperty().bind(labelText);
         nameLabel.setLayoutY(startYPos + offsetYPos * count - 25);
         nameLabel.translateXProperty().bind(msgLine.endXProperty().add(nameLabel.widthProperty()).divide(2));
@@ -106,10 +107,13 @@ public class GMessage {
      */
     public void updateText() {
         if (!model.getName().isBlank()) {
+            labelText.unbind();
             labelText.setValue(model.getName());
         } else if (!model.getMessage().getName().isBlank()) {
-            labelText.setValue(model.getMessage().getName());
+            // labelText.setValue(model.getMessage().getName());
+            labelText.bind(model.getMessage().getNameProperty());
         } else {
+            labelText.unbind();
             labelText.setValue("");
         }
     }
@@ -127,5 +131,21 @@ public class GMessage {
             arrow.getTransforms().add(rotation2);
             pointLeft = false;
         }
+    }
+
+    public void removeFromCanvas(Pane canvas) {
+        canvas.getChildren().removeAll(msgLine, arrow, nameLabel);
+    }
+
+    /**
+     * Updates GMessage position.
+     * If {@code offsetDown} value is negative number, new position will be higher than original
+     * and otherwise. Position is represented as index in a list.
+     * @param offsetDown Number of position to move down.
+     */
+    public void moveContent(int offsetDown) {
+        msgLine.setLayoutY(msgLine.getLayoutY() + offsetDown * offsetYPos);
+        nameLabel.setLayoutY(nameLabel.getLayoutY() + offsetDown * offsetYPos);
+        arrow.setLayoutY(arrow.getLayoutY() + offsetDown * offsetYPos);
     }
 }

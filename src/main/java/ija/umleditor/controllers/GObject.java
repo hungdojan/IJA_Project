@@ -15,6 +15,7 @@ package ija.umleditor.controllers;
 import ija.umleditor.models.UMLClass;
 import ija.umleditor.models.UMLObject;
 import javafx.geometry.Insets;
+import javafx.scene.Group;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -31,10 +32,15 @@ public class GObject {
     private final Label objectLabel;
     private Line line;
     private GSequenceDiagram owner;
+    private Group baseGroup;
     private final UMLObject model;
 
     public Line getLine() {
         return line;
+    }
+
+    public Group getBaseGroup() {
+        return baseGroup;
     }
 
     public void selected(boolean b) {
@@ -70,6 +76,7 @@ public class GObject {
         this.model = Objects.requireNonNull(model);
         this.owner = Objects.requireNonNull(owner);
         // create object
+        baseGroup = new Group();
         objectLabel = new Label();
         objectLabel.textProperty().bind(model.getToStringProperty());
 
@@ -99,7 +106,7 @@ public class GObject {
         line.startYProperty().bind(objectLabel.layoutYProperty().add(objectLabel.heightProperty()));
         line.endXProperty().bind(objectLabel.layoutXProperty()
                 .add(objectLabel.translateXProperty()).add(objectLabel.widthProperty().divide(2)));
-        line.endYProperty().bind(root.heightProperty());
+        line.endYProperty().bind(objectLabel.layoutYProperty().add(root.computeAreaInScreen()));
 
         // moving with object
         objectLabel.setOnMouseClicked(ev -> {
@@ -129,7 +136,8 @@ public class GObject {
             // TODO: commandBuilder
         });
 
-        root.getChildren().addAll(line, objectLabel);
+        baseGroup.getChildren().addAll(line, objectLabel);
+        root.getChildren().addAll(baseGroup);
         line.toBack();
     }
 

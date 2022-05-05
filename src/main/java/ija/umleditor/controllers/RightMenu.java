@@ -20,8 +20,11 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
+import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class RightMenu {
     private Accordion base;
@@ -331,9 +334,14 @@ public class RightMenu {
                 content = item.getDest().getName();
             }
 
-            Label destLabel = new Label("Destination:");
-            TextField destField = new TextField(content);
-            destField.setEditable(false);
+            Label directionLabel = new Label();
+            if (item.getSrc() == baseElement.getModel()) {
+                directionLabel.setText("Destination:");
+            } else {
+                directionLabel.setText("Source:");
+            }
+            TextField directionField = new TextField(content);
+            directionField.setEditable(false);
             deleteRelationButton.setOnAction(ev -> {
                 var relationClass = baseElement.getOwner().getModel().getClass(destField.getText());
                 if (relationClass == null)
@@ -346,16 +354,32 @@ public class RightMenu {
             Label typeLabel = new Label("Type:");
 //            Label pickedTypeLabel = new Label("selected type");
             ObservableList<String> relationTypes =
-                    FXCollections.observableArrayList(
-                            "Association",
-                            "Aggregation",
-                            "Composition",
-                            "Generalization"
+                    FXCollections.observableArrayList(EnumSet.allOf(RelationType.class).stream()
+                            .map(RelationType::name).collect(Collectors.toList())
                     );
             typesCB = new ComboBox<>(relationTypes);
-//            typesCB.setValue();
+            typesCB.setValue(item.getRelationType().toString());
+            typesCB.setOnAction(ev -> {
+                // TODO:
+                var gRelation = baseElement.getOwner().getRelation((UMLClass) item.getSrc(), (UMLClass) item.getDest());
+                item.setRelationType(RelationType.valueOf(typesCB.getValue()));
+                gRelation.updateColor();
+            });
 
-            relationGrid.add(destLabel, 0, 0);
+            Button swapButton = new Button("Swap");
+            swapButton.setOnAction(ev -> {
+                var gRelation = baseElement.getOwner().getRelation((UMLClass) item.getSrc(), (UMLClass) item.getDest());
+                if (gRelation == null)
+                    return;
+                // TODO: update label
+                if (Objects.equals(directionLabel.getText(), "Source:")) {
+                    directionLabel.setText("Destination:");
+                } else if (Objects.equals(directionLabel.getText(), "Destination:")) {
+                    directionLabel.setText("Source:");
+                }
+                gRelation.swapDirection();
+            });
+            relationGrid.add(directionLabel, 0, 0);
             relationGrid.add(typeLabel, 1, 0);
             relationGrid.add(destField, 0, 1);
             relationGrid.add(typesCB, 1, 1);
@@ -363,8 +387,12 @@ public class RightMenu {
 
             ClassDiagram baseClassDiagram = baseElement.getOwner().getModel();
             if (baseElement.getOwner().getRelation((UMLClass) item.getSrc(), (UMLClass) item.getDest()) == null) {
+                var src = (UMLClass) item.getSrc();
+                var dst = (UMLClass) item.getDest();
+                src.addRelation(dst, RelationType.valueOf(typesCB.getValue()));
+                var rel = src.getRelation(dst);
                 baseElement.getOwner().addRelation(new GRelation(
-                        baseElement, baseElement.getOwner().getClassElement(baseClassDiagram.getClass(content)), baseElement.getOwner().getCanvas(), typesCB.getValue()));
+                        baseElement, baseElement.getOwner().getClassElement(baseClassDiagram.getClass(content)), baseElement.getOwner().getCanvas(), rel));
             }
 
 //            relationGrid.getChildren().addAll(destField, deleteRelationButton);
@@ -395,13 +423,20 @@ public class RightMenu {
 
             Label typeLabel = new Label("Select type:");
             ObservableList<String> relationTypes =
-                    FXCollections.observableArrayList(
-                            "Association",
-                            "Aggregation",
-                            "Composition",
-                            "Generalization"
+                    FXCollections.observableArrayList(EnumSet.allOf(RelationType.class).stream()
+                            .map(RelationType::name).collect(Collectors.toList())
                     );
             ComboBox<String> typesCB = new ComboBox<>(relationTypes);
+            typesCB.setOnAction(e -> {
+                // TODO:
+                var gRelation = baseElement.getOwner().getRelation(
+                        baseElement.getModel(),
+                        baseElement.getOwner().getModel().getClass(destField.getText()));
+                baseElement.getModel().getRelation(
+                        baseElement.getOwner().getModel().getClass(destField.getText())
+                ).setRelationType(RelationType.valueOf(typesCB.getValue()));
+                gRelation.updateColor();
+            });
 
             relationGrid.add(destLabel, 0, 0);
             relationGrid.add(typeLabel, 1, 0);
@@ -411,18 +446,21 @@ public class RightMenu {
             relationGrid.add(deleteRelationButton, 3, 1);
 
             drawRelationButton.setOnAction(e -> {
-                var classElement = baseElement.getOwner().getModel().getClass(destField.getText());
-                if (classElement == null) {
+                var destinationClass = baseElement.getOwner().getModel().getClass(destField.getText());
+                if (destinationClass == null) {
                     // TODO: alert error
-                } else {
-                    if (!baseElement.getModel().addRelation(classElement, RelationType.ASSOCIATION)) {
-                        // TODO: alert existing relation
-                        return;
-                    }
-                    baseElement.getOwner().addRelation(
-                            new GRelation(baseElement, baseElement.getOwner().getClassElement(classElement), baseElement.getOwner().getCanvas(), typesCB.getValue()));
-                    destField.setEditable(false);
+                    return;
                 }
+                if (!baseElement.getModel().addRelation(destinationClass, RelationType.valueOf(typesCB.getValue()) )) {
+                    // TODO: alert existing relation
+                    return;
+                }
+                var relation = baseElement.getModel().getRelation(destinationClass);
+                // var src = (UMLClass) .getSrc();
+                baseElement.getOwner().addRelation(
+                        new GRelation(baseElement, baseElement.getOwner().getClassElement(destinationClass), baseElement.getOwner().getCanvas(), relation));
+                destField.setEditable(false);
+                destField.setDisable(true);
             });
             deleteRelationButton.setOnAction(e -> {
                 if (destField.getText().isBlank() || destField.isEditable())
