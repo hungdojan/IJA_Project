@@ -270,13 +270,14 @@ public class GClassDiagram {
                 if (loadedRelations.contains(relation))
                     continue;
                 loadedRelations.add(relation);
-                GClassElement gSrc = gClassElementList.stream().filter(x -> x.getModel() == (UMLClass) relation.getSrc())
+                GClassElement gSrc = gClassElementList.stream().filter(x -> x.getModel() == relation.getSrc())
                         .findFirst().orElse(null);
-                GClassElement gDst = gClassElementList.stream().filter(x -> x.getModel() == (UMLClass) relation.getDest())
+                GClassElement gDst = gClassElementList.stream().filter(x -> x.getModel() == relation.getDest())
                         .findFirst().orElse(null);
                 if (gSrc == null || gDst == null)
                     continue;
-                GRelation gRelation = new GRelation(gSrc, gDst, canvas);
+                // TODO: add relation model
+                GRelation gRelation = new GRelation(gSrc, gDst, canvas, relation);
                 gRelationsList.add(gRelation);
             }
         }
@@ -303,10 +304,7 @@ public class GClassDiagram {
 
         // event to delete selected class element with DELETE
         rootTab.setOnKeyPressed(ev -> {
-            if (ev.getCode() == KeyCode.DELETE) {
-                if (selectedElement == null || !deleteFlag) {
-                    return;
-                }
+            if (ev.getCode() == KeyCode.DELETE && selectedElement != null && deleteFlag) {
                 commandBuilder.execute(new ICommand() {
                     final int index = classDiagram.getClassElements().indexOf(selectedElement.getModel());
                     final GClassElement element = selectedElement;
@@ -412,8 +410,8 @@ public class GClassDiagram {
      */
     public GRelation getRelation(UMLClass src, UMLClass dest) {
         return gRelationsList.stream()
-                .filter(x -> (x.getModel1().getModel() == src && x.getModel2().getModel() == dest) ||
-                        (x.getModel1().getModel() == dest && x.getModel2().getModel() == src))
+                .filter(x -> (x.getSrcClass().getModel() == src && x.getDestClass().getModel() == dest) ||
+                        (x.getSrcClass().getModel() == dest && x.getDestClass().getModel() == src))
                 .findFirst().orElse(null);
     }
 
@@ -424,6 +422,7 @@ public class GClassDiagram {
      */
     public boolean removeRelation(GRelation relation) {
         gRelationsList.remove(relation);
+        relation.getSrcClass().getModel().removeRelationWithClass(relation.getDestClass().getModel());
         return canvas.getChildren().remove(relation.getBaseStructure());
     }
 }

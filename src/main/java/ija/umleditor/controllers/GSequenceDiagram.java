@@ -20,6 +20,7 @@ import javafx.collections.ObservableList;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 
 import java.util.ArrayList;
@@ -39,7 +40,6 @@ public class GSequenceDiagram {
     private final ObservableList<String> observableClassNames = FXCollections.observableArrayList();
     public final static ObservableList<String> messageType =
             FXCollections.observableArrayList("Sync", "Async", "Return", "Create", "Free");
-    private final ObservableList<String> observableOperations = FXCollections.observableArrayList();
     private final ObservableList<String> observableObjects = FXCollections.observableArrayList();
     private final GClassDiagram owner;
     private GObject selectedObject;
@@ -47,6 +47,7 @@ public class GSequenceDiagram {
     private GObject object = null;
     private GMessage msgLine = null;
     private GMessageSettings newMessage = null;
+    private final Tab baseTab;
 
     private final SequenceDiagram model;
     private int countObj = 0;
@@ -58,12 +59,37 @@ public class GSequenceDiagram {
         }
     }
 
+    public Tab getBaseTab() {
+        return baseTab;
+    }
+
     public void addGMessage(GMessage gMessage) {
+        if (gMessage == null)
+            return;
+        gMessageList.add(gMessage);
+    }
+
+    public void addGMessage(GMessage gMessage, int position) {
+        if (gMessage == null)
+            return;
+        for (int i = position; i < gMessageList.size(); i++) {
+            gMessageList.get(i).moveContent(1);
+        }
+        gMessage.moveContent(gMessageList.size() - 1 - position);
         gMessageList.add(gMessage);
     }
 
     public void removeGMessage(GMessage gMessage) {
+        if (gMessage == null)
+            return;
+        int position = gMessageList.indexOf(gMessage);
+        if (position < 0)
+            return;
+        gMessage.removeFromCanvas(canvas);
         gMessageList.remove(gMessage);
+        for (; position < gMessageList.size(); position++)
+            gMessageList.get(position).moveContent(-1);
+        countMsg--;
     }
 
     public void removeGMessageSettings(GMessageSettings gMessageSettings) {
@@ -77,12 +103,6 @@ public class GSequenceDiagram {
     public List<GObject> getgObjectList() {
         return gObjectList;
     }
-
-    public ObservableList<String> getObservableOperations() {
-        return observableOperations;
-    }
-
-
 
     public void setNewMessage(GMessageSettings newMessage) {
         this.newMessage = newMessage;
@@ -107,7 +127,7 @@ public class GSequenceDiagram {
         this.model = Objects.requireNonNull(model);
         this.owner = Objects.requireNonNull(owner);
 
-        Tab baseTab = new Tab(model.getName());
+        baseTab = new Tab(model.getName());
 
 
         // content pane
@@ -155,6 +175,17 @@ public class GSequenceDiagram {
 
         canvas = new AnchorPane();
         drawable.setContent(canvas);
+        drawable.setOnKeyPressed(ev -> {
+            System.out.println("tu");
+            if (ev.getCode() == KeyCode.DELETE && selectedObject != null) {
+                selectedObject.getModel().close();
+                for (var m : gMessageList.stream().filter(x -> x.getSrcGObject() == selectedObject ||
+                        x.getDstGObject() == selectedObject).collect(Collectors.toList())) {
+                    // TODO: update gMessages (color??)
+                }
+                canvas.getChildren().remove(selectedObject.getBaseGroup());
+            }
+        });
         HBox.setHgrow(drawable, Priority.ALWAYS);
         return drawable;
     }
