@@ -11,9 +11,10 @@
  */
 package ija.umleditor.controllers;
 
-import javafx.scene.control.ComboBox;
+import ija.umleditor.models.UMLMessage;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
@@ -23,10 +24,35 @@ import javafx.scene.transform.Rotate;
 import java.util.Objects;
 
 public class GMessage {
-    private final GObject model1;
-    private final GObject model2;
-    private double startYPos = 100;
-    private double offsetYPos = 50;
+    private final UMLMessage model;
+    private GObject srcGObject;
+    private GObject dstGObject;
+    private Polygon arrow;
+    private Line msgLine;
+    private final double startYPos = 100;
+    private final double offsetYPos = 50;
+    private final StringProperty labelText = new SimpleStringProperty();
+    private boolean pointLeft;
+
+    public UMLMessage getModel() {
+        return model;
+    }
+
+    public void setSrcGObject(GObject srcGObject) {
+        this.srcGObject = srcGObject;
+    }
+
+    public void setDstGObject(GObject dstGObject) {
+        this.dstGObject = dstGObject;
+    }
+
+    public GObject getDstGObject() {
+        return dstGObject;
+    }
+
+    public GObject getSrcGObject() {
+        return srcGObject;
+    }
 
     /**
      * Creates message between two objects.
@@ -34,21 +60,23 @@ public class GMessage {
      * @param obj1 Starting object
      * @param obj2 Ending object
      */
-    public GMessage(Pane root, GObject obj1, GObject obj2, double count, String text) {
-        model1 = Objects.requireNonNull(obj1);
-        model2 = Objects.requireNonNull(obj2);
+    public GMessage(Pane root, GObject obj1, GObject obj2, double count, UMLMessage model) {
+        srcGObject = Objects.requireNonNull(obj1);
+        dstGObject = Objects.requireNonNull(obj2);
+        this.model  = Objects.requireNonNull(model);
+        String text = model.getName();
 
         // create line
         Line msg = new Line();
         msg.setStrokeWidth(2);
 
         // bind line to objects
-        msg.startXProperty().bind(model1.getObjectLabel().layoutXProperty()
-                .add(model1.getObjectLabel().translateXProperty().add(model1.getObjectLabel().widthProperty().divide(2))));
-        msg.setStartY(startYPos + offsetYPos * count);
-        msg.endXProperty().bind(model2.getObjectLabel().layoutXProperty()
-                .add(model2.getObjectLabel().translateXProperty().add(model2.getObjectLabel().widthProperty().divide(2))));
-        msg.setEndY(startYPos + offsetYPos * count);
+        msgLine.startXProperty().bind(srcGObject.getObjectLabel().layoutXProperty()
+                .add(srcGObject.getObjectLabel().translateXProperty().add(srcGObject.getObjectLabel().widthProperty().divide(2))));
+        msgLine.setStartY(startYPos + offsetYPos * count);
+        msgLine.endXProperty().bind(dstGObject.getObjectLabel().layoutXProperty()
+                .add(dstGObject.getObjectLabel().translateXProperty().add(dstGObject.getObjectLabel().widthProperty().divide(2))));
+        msgLine.setEndY(startYPos + offsetYPos * count);
 
         // create arrow
         Polygon arrow = new Polygon();
@@ -64,5 +92,33 @@ public class GMessage {
         nameLabel.translateXProperty().bind(msg.endXProperty().add(nameLabel.widthProperty()).divide(2));
 
         root.getChildren().addAll(msg, arrow, nameLabel);
+    }
+
+    /**
+     * Updates text.
+     */
+    public void updateText() {
+        if (!model.getName().isBlank()) {
+            labelText.setValue(model.getName());
+        } else if (!model.getMessage().getName().isBlank()) {
+            labelText.setValue(model.getMessage().getName());
+        } else {
+            labelText.setValue("");
+        }
+    }
+
+    /**
+     * Updates arrow head direction
+     */
+    public void updateArrowHead() {
+        if (msgLine.getEndX() < msgLine.getStartX() && !pointLeft) {
+            Rotate rotation2 = new Rotate(180);
+            arrow.getTransforms().add(rotation2);
+            pointLeft = true;
+        } else if (msgLine.getEndX() > msgLine.getStartX() && pointLeft) {
+            Rotate rotation2 = new Rotate(180);
+            arrow.getTransforms().add(rotation2);
+            pointLeft = false;
+        }
     }
 }

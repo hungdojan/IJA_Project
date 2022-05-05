@@ -19,7 +19,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
@@ -35,9 +34,10 @@ public class GSequenceDiagram {
     private final AnchorPane rightMenu;
     private final List<GObject> gObjectList = new ArrayList<>();
     private final List<GMessage> gMessageList = new ArrayList<>();
+    private final List<GMessageSettings> gMessageSettingsList = new ArrayList<>();
     private final CommandBuilder commandBuilder = new CommandBuilder();
     private final ObservableList<String> observableClassNames = FXCollections.observableArrayList();
-    private final ObservableList<String> messageType =
+    public final static ObservableList<String> messageType =
             FXCollections.observableArrayList("Sync", "Async", "Return", "Create", "Free");
     private final ObservableList<String> observableOperations = FXCollections.observableArrayList();
     private final ObservableList<String> observableObjects = FXCollections.observableArrayList();
@@ -46,10 +46,55 @@ public class GSequenceDiagram {
     private Pane canvas = null;
     private GObject object = null;
     private GMessage msgLine = null;
+    private GMessageSettings newMessage = null;
 
     private final SequenceDiagram model;
     private int countObj = 0;
-    private int countMsg = 0;
+    public int countMsg = 0;
+
+    public void updateArrow() {
+        for (var gm : gMessageList) {
+            gm.updateArrowHead();
+        }
+    }
+
+    public void addGMessage(GMessage gMessage) {
+        gMessageList.add(gMessage);
+    }
+
+    public void removeGMessage(GMessage gMessage) {
+        gMessageList.remove(gMessage);
+    }
+
+    public void removeGMessageSettings(GMessageSettings gMessageSettings) {
+        gMessageSettingsList.remove(gMessageSettings);
+    }
+
+    public SequenceDiagram getModel() {
+        return model;
+    }
+
+    public List<GObject> getgObjectList() {
+        return gObjectList;
+    }
+
+    public ObservableList<String> getObservableOperations() {
+        return observableOperations;
+    }
+
+
+
+    public void setNewMessage(GMessageSettings newMessage) {
+        this.newMessage = newMessage;
+    }
+
+    public GMessageSettings getNewMessage() {
+        return newMessage;
+    }
+
+    public Pane getCanvas() {
+        return canvas;
+    }
 
     /**
      * Class {@code GSequenceDiagram} constructor.
@@ -64,13 +109,6 @@ public class GSequenceDiagram {
 
         Tab baseTab = new Tab(model.getName());
 
-        for (var obj : model.getObjects()) {
-            // TODO: load object
-        }
-
-        for (var msg : model.getMessages()) {
-            // TODO: load messages
-        }
 
         // content pane
         baseHBox = new HBox();
@@ -87,6 +125,19 @@ public class GSequenceDiagram {
         baseHBox.getChildren().addAll(drawable, rightMenu);
         baseTab.setContent(baseHBox);
         rootTab.getTabs().add(baseTab);
+        for (var obj : model.getObjects()) {
+            var object = new GObject(canvas, obj, countObj, this);
+            gObjectList.add(object);
+            observableObjects.add(obj.getName());
+            countObj++;
+        }
+
+        for (var msg : model.getMessages()) {
+            // TODO: load messages
+            var gMessageSettings = new GMessageSettings(observableObjects, menuVBox, this);
+            gMessageSettings.loadModel(msg);
+            gMessageSettingsList.add(gMessageSettings);
+        }
     }
 
     /**
@@ -169,7 +220,12 @@ public class GSequenceDiagram {
         Button addMessage = new Button("Add message");
         addMessage.setMaxWidth(Double.MAX_VALUE);
         addMessage.setOnAction(e -> {
-            addMessageLayout(menuVBox);
+            // add new object
+            if (newMessage == null) {
+                var gMessageSettings = new GMessageSettings(observableObjects, menuVBox, this);
+                gMessageSettingsList.add(gMessageSettings);
+                newMessage = gMessageSettings;
+            }
         });
         
         // fill vbox to anchor pane and add border
@@ -199,73 +255,6 @@ public class GSequenceDiagram {
 
         menuVBox.getChildren().addAll(nameLabel, nameTF, typeObjLabel, typeCB, addObject, msgLabel, addMessage, sep, deleteDiagram);
         return menuVBox;
-    }
-
-    private void addMessageLayout(VBox menuVBox) {
-        // create grid to store messages in right menu
-        var messageGrid = new GridPane();
-        Label srcLabel = new Label("Source:");
-        Label destLabel = new Label("Destination:");
-        Label typeMsgLabel = new Label("Type:");
-
-        // get list of existing objects'
-        // var lofObjects = this.model.getObjects().stream().map(UMLObject::getName).collect(Collectors.toList());
-        // ObservableList<String> objOptions = FXCollections.observableArrayList(lofObjects);
-
-        // create combo boxes for options
-        ComboBox<String> srcObjCB  = new ComboBox<>(observableObjects);
-        ComboBox<String> destObjCB = new ComboBox<>(observableObjects);
-        ComboBox<String> msgTypeCB = new ComboBox<>(messageType);
-        msgTypeCB.setMinWidth(80);
-//            messageBox.getChildren().addAll(srcObj, destObj, msgCB, deleteMsgButton);
-
-        // create text field to write the text of the message
-        TextField msgTF = new TextField();
-
-        // create delete button
-        Button deleteMsgButton = new Button("DELETE");
-        deleteMsgButton.setMinWidth(60);
-        deleteMsgButton.setOnAction(ev -> {
-            // TODO:
-            menuVBox.getChildren().remove(messageGrid);
-        });
-
-        // put parts into grid
-        messageGrid.add(srcLabel, 0, 0);
-        messageGrid.add(destLabel, 1, 0);
-        messageGrid.add(typeMsgLabel, 2, 0);
-        messageGrid.add(srcObjCB, 0, 1);
-        messageGrid.add(destObjCB, 1, 1);
-        messageGrid.add(msgTypeCB, 2, 1);
-        messageGrid.add(msgTF, 0, 2, 2, 1);
-        messageGrid.add(deleteMsgButton, 2, 2);
-
-        for (Node child : messageGrid.getChildren()) {
-            HBox.setHgrow(child, Priority.ALWAYS);
-        }
-
-        menuVBox.getChildren().add(menuVBox.getChildren().size()-3, messageGrid);
-        srcObjCB.setOnAction(ev -> {
-        });
-        destObjCB.setOnAction(ev -> {
-            // TODO:
-        });
-        msgTypeCB.setOnAction(ev -> {
-            // TODO:
-        });
-        msgTF.setOnAction(ev -> {
-            // TODO:
-            // put the message line on canvas
-            var srcObj = gObjectList.stream().filter(x -> Objects.equals(x.getModel().getName(), srcObjCB.getValue()))
-                    .findFirst().orElse(null);
-            var dstObj = gObjectList.stream().filter(x -> Objects.equals(x.getModel().getName(), destObjCB.getValue()))
-                    .findFirst().orElse(null);
-            if (srcObj == null || dstObj == null)
-                return;
-
-            msgLine = new GMessage(canvas, srcObj, dstObj, countMsg, msgTF.getText());
-            countMsg++;
-        });
     }
 
     public void setSelectedObject(GObject object) {
