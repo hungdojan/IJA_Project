@@ -9,6 +9,20 @@ public class UMLMessage extends Element implements IObserver {
     private UMLObject sender;
     private UMLObject receiver;
     private UMLOperation message;
+    private MessageType messageType;
+
+    @Override
+    public void setName(String name) {
+        super.setName(name);
+    }
+
+    public void setMessageType(MessageType messageType) {
+        this.messageType = messageType;
+    }
+
+    public MessageType getMessageType() {
+        return messageType;
+    }
 
     /**
      * Class UMLMessage constructor

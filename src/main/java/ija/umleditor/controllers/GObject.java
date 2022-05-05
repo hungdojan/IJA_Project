@@ -33,6 +33,10 @@ public class GObject {
     private GSequenceDiagram owner;
     private final UMLObject model;
 
+    public Line getLine() {
+        return line;
+    }
+
     public void selected(boolean b) {
         if (b) {
             objectLabel.setStyle("-fx-border-style: dashed dashed dashed dashed; -fx-border-width: 3; -fx-background-color: rgb(173,216,230)");
@@ -95,7 +99,7 @@ public class GObject {
         line.startYProperty().bind(objectLabel.layoutYProperty().add(objectLabel.heightProperty()));
         line.endXProperty().bind(objectLabel.layoutXProperty()
                 .add(objectLabel.translateXProperty()).add(objectLabel.widthProperty().divide(2)));
-        line.endYProperty().bind(objectLabel.layoutYProperty().add(root.computeAreaInScreen()));
+        line.endYProperty().bind(root.heightProperty());
 
         // moving with object
         objectLabel.setOnMouseClicked(ev -> {
@@ -121,6 +125,7 @@ public class GObject {
             if (!selectable)
                 model.setX(objectLabel.getTranslateX());
             selectable = true;
+            owner.updateArrow();
             // TODO: commandBuilder
         });
 
