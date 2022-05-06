@@ -1,3 +1,15 @@
+/**
+ * @brief Creates grid for every message.
+ * It is possible to set source object, destination object, message type, either new text or operation (new text is privileged)
+ * and button to draw or delete the message.
+ *
+ * This source code serves as submission for semester assignment of class IJA at FIT, BUT 2021/22.
+ *
+ * @file GMessageSettings.java
+ * @date 03/05/2022
+ * @authors Hung Do      (xdohun00)
+ *          Petr Kolarik (xkolar79)
+ */
 package ija.umleditor.controllers;
 
 import ija.umleditor.models.*;
@@ -15,7 +27,9 @@ import java.util.EnumSet;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-
+/**
+ * Graphical representation of box for editing messages.
+ */
 public class GMessageSettings {
     private final GSequenceDiagram owner;
     private GMessage gModel = null;
@@ -25,17 +39,9 @@ public class GMessageSettings {
     private final ComboBox<String> msgTypeCB;
     private final TextField msgTF;
 
-    public GMessage getgModel() {
-        return gModel;
-    }
-
-    public void setgModel(GMessage gModel) {
-        this.gModel = gModel;
-    }
-
     /**
      * Loads UMLMessage model.
-     * @param model
+     * @param model Instance of UMLMessage.
      */
     public void loadModel(UMLMessage model) {
         // TODO:
@@ -55,6 +61,12 @@ public class GMessageSettings {
         owner.addGMessage(gModel);
     }
 
+    /**
+     * Class {@code GMessageSettings} constructor.
+     * @param observableObjects List of object that are currently on canvas.
+     * @param menuVBox Box to store the messages into.
+     * @param owner Instance of GSequenceDiagram.
+     */
     public GMessageSettings(ObservableList<String> observableObjects, VBox menuVBox, GSequenceDiagram owner) {
         this.owner = Objects.requireNonNull(owner);
         // create grid to store messages in right menu
@@ -64,10 +76,6 @@ public class GMessageSettings {
         Label typeMsgLabel = new Label("Type:");
         Label ownOperationLabel = new Label("Set text:");
         Label pickOperationLabel = new Label("Operation:");
-
-        // get list of existing objects'
-        // var lofObjects = this.model.getObjects().stream().map(UMLObject::getName).collect(Collectors.toList());
-        // ObservableList<String> objOptions = FXCollections.observableArrayList(lofObjects);
 
         // create combo boxes for options
         srcObjCB = new ComboBox<>(observableObjects);
@@ -80,25 +88,43 @@ public class GMessageSettings {
         operationCB = new ComboBox<>();
         operationCB.setDisable(true);
         msgTypeCB.setMinWidth(80);
-//        if (gModel != null && gModel.getModel() != null) {
-//            msgTypeCB.setValue(gModel.getModel().getMessageType().toString());
-//        }
-//            messageBox.getChildren().addAll(srcObj, destObj, msgCB, deleteMsgButton);
 
         // create text field to write the text of the message
         msgTF = new TextField();
 
         // create delete button
-        Button deleteMsgButton = new Button("DELETE");
+        Button deleteMsgButton = new Button("Delete");
+        deleteMsgButton.setStyle("-fx-background-radius: 15px");
         deleteMsgButton.setMinWidth(60);
-        deleteMsgButton.setOnAction(ev -> {
-            // TODO: remove and move
-            if (owner.getNewMessage() == this) {
-                owner.setNewMessage(null);
+        GMessageSettings temp = this;
+        deleteMsgButton.setOnAction(ev -> owner.getCommandBuilder().execute(new ICommand() {
+            int index;
+            final GridPane tempGrid = messageGrid;
+            final GMessage tempModel = gModel;
+            @Override
+            public void undo() {
+                menuVBox.getChildren().add(index + 5, tempGrid);
+                owner.addGMessage(tempModel, index);
             }
-            menuVBox.getChildren().remove(messageGrid);
-            owner.removeGMessage(gModel);
-        });
+
+            @Override
+            public void redo() {
+                menuVBox.getChildren().remove(tempGrid);
+                owner.removeGMessage(tempModel);
+            }
+
+            @Override
+            public void execute() {
+                if (owner.getNewMessage() == temp) {
+                    owner.setNewMessage(null);
+                }
+                menuVBox.getChildren().remove(tempGrid);
+                index = owner.removeGMessage(tempModel);
+            }
+        }));
+
+        Button drawMsgButton = new Button("Draw");
+        drawMsgButton.setStyle("-fx-background-radius: 15px");
 
         // separator between messages
         Separator sep = new Separator();
@@ -107,30 +133,32 @@ public class GMessageSettings {
         HBox.setHgrow(sep, Priority.ALWAYS);
         menuVBox.getChildren().add(sep);
 
+        // fill the grid
+        srcObjCB.setMaxWidth(Double.MAX_VALUE);
+        destObjCB.setMaxWidth(Double.MAX_VALUE);
+        msgTypeCB.setMaxWidth(Double.MAX_VALUE);
+        msgTF.setMaxWidth(Double.MAX_VALUE);
+        operationCB.setMaxWidth(Double.MAX_VALUE);
+        drawMsgButton.setMaxWidth(Double.MAX_VALUE);
+        deleteMsgButton.setMaxWidth(Double.MAX_VALUE);
+
         // put parts into grid
         messageGrid.add(srcLabel, 0, 0);
         messageGrid.add(destLabel, 1, 0);
         messageGrid.add(typeMsgLabel, 2, 0);
         messageGrid.add(srcObjCB, 0, 1);
         messageGrid.add(destObjCB, 1, 1);
-        messageGrid.add(msgTypeCB, 2, 1);
+        messageGrid.add(msgTypeCB, 2, 1, 2, 1);
         messageGrid.add(ownOperationLabel, 0, 2);
         messageGrid.add(pickOperationLabel, 1, 2);
         messageGrid.add(msgTF, 0, 3);
         messageGrid.add(operationCB, 1, 3);
-        messageGrid.add(deleteMsgButton, 2, 3);
-        messageGrid.add(sep, 0, 4, 3, 1);
-
-        for (Node child : messageGrid.getChildren()) {
-            HBox.setHgrow(child, Priority.ALWAYS);
-            child.maxWidth(Double.MAX_VALUE);
-        }
+        messageGrid.add(drawMsgButton, 2, 3);
+        messageGrid.add(deleteMsgButton, 3, 3);
+        messageGrid.add(sep, 0, 4, 4, 1);
 
         menuVBox.getChildren().add(menuVBox.getChildren().size()-3, messageGrid);
-        srcObjCB.setOnAction(ev -> {
-            var srcObj = owner.getgObjectList().stream().filter(x -> Objects.equals(x.getModel().getName(), srcObjCB.getValue()))
-                    .findFirst().orElse(null);
-        });
+
         destObjCB.setOnAction(ev -> {
             var dstObj = owner.getgObjectList().stream().filter(x -> Objects.equals(x.getModel().getName(), destObjCB.getValue()))
                     .findFirst().orElse(null);
@@ -148,14 +176,12 @@ public class GMessageSettings {
             }
         });
         msgTypeCB.setOnAction(ev -> {
-            // TODO:
             if (gModel != null) {
                 gModel.getModel().setMessageType(MessageType.valueOf(msgTypeCB.getValue()));
                 gModel.update("line");
             }
         });
-        msgTF.setOnAction(ev -> {
-            // TODO:
+        drawMsgButton.setOnAction(ev -> {
             // put the message line on canvas
             if (gModel == null) {
                 var srcObj = owner.getgObjectList().stream().filter(x -> Objects.equals(x.getModel().getName(), srcObjCB.getValue()))

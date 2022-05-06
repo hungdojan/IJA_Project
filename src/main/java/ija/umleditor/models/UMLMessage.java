@@ -1,9 +1,23 @@
+/**
+ * @brief Declaration of UMLMessage class.
+ * UMLClass represents abstract structure of message in sequence diagram.
+ *
+ * This source code serves as submission for semester assignment of class IJA at FIT, BUT 2021/22.
+ *
+ * @file UMLMessage.java
+ * @date 03/05/2022
+ * @authors Hung Do      (xdohun00)
+ *          Petr Kolarik (xkolar79)
+ */
 package ija.umleditor.models;
 
 import org.json.JSONObject;
 
 import java.util.Objects;
 
+/**
+ * Declaration of UMLMessage class.
+ */
 public class UMLMessage extends Element implements IObserver {
 
     private UMLObject sender;
@@ -16,12 +30,20 @@ public class UMLMessage extends Element implements IObserver {
         super.setName(name);
     }
 
+    /**
+     * Sets type of message.
+     * @param messageType New type that is instance of MessageType
+     */
     public void setMessageType(MessageType messageType) {
         if (messageType == null)
             return;
         this.messageType = messageType;
     }
 
+    /**
+     * Gets message type
+     * @return Instance of MessageType
+     */
     public MessageType getMessageType() {
         return messageType;
     }
@@ -35,32 +57,40 @@ public class UMLMessage extends Element implements IObserver {
      */
     public UMLMessage(String name, UMLObject sender, UMLObject receiver, UMLOperation message) {
         super(name);
-        // FIXME: connection between InstancePeriods, not UMLObjects
         setSender(sender);
         setReceiver(receiver);
         setMessage(message);
         messageType = MessageType.SYNC;
-        // this.sender = sender;
-        // this.receiver = receiver;
-        // TODO:
     }
 
     /**
-     * Returns object that sent message
-     * @return
+     * Returns object that sent the message
+     * @return Instance of UMLObject
      */
     public UMLObject getSender() {
         return sender;
     }
 
+    /**
+     * Returns object that received the message
+     * @return Instance of UMLObject
+     */
     public UMLObject getReceiver() {
         return receiver;
     }
 
+    /**
+     * Returns sent message
+     * @return Instance of UMLOperation
+     */
     public UMLOperation getMessage() {
         return message;
     }
 
+    /**
+     * Updates receiver, when null is passed, special undef object is set to prevent null pointer exception
+     * @param receiver Instance of UMLObject
+     */
     public void setReceiver(UMLObject receiver) {
         if (this.receiver != null && this.receiver != SequenceDiagram.undefObject)
             this.receiver.detach(this);
@@ -71,6 +101,10 @@ public class UMLMessage extends Element implements IObserver {
             this.receiver.attach(this);
     }
 
+    /**
+     * Updates sender, when null is passed, special undef object is set to prevent null pointer exception
+     * @param sender Instance of UMLObject
+     */
     public void setSender(UMLObject sender) {
         if (this.sender != null && this.sender != SequenceDiagram.undefObject)
             this.sender.detach(this);
@@ -81,8 +115,11 @@ public class UMLMessage extends Element implements IObserver {
             this.sender.attach(this);
     }
 
+    /**
+     * Updates message, when null is passed, special undef operation is set to prevent null pointer exception
+     * @param message Instance of UMLMessage
+     */
     public void setMessage(UMLOperation message) {
-        // TODO: message is callable from receiver
         if (this.message != null && this.message != SequenceDiagram.undefOperation)
             this.message.detach(this);
         this.message = message;

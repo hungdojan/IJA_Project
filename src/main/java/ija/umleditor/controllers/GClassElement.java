@@ -30,12 +30,14 @@ import javafx.scene.text.FontPosture;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Graphical representation of class element.
+ */
 public class GClassElement {
 
     // position of mouse pressed
     private double posX;
     private double posY;
-    private Point2D relativePos;
     private boolean selectable = true;
 
     private VBox attributesBox = null;
@@ -49,7 +51,7 @@ public class GClassElement {
     private final VBox baseLayout;
 
     /**
-     * Changes apperance of element if it is selected, otherwise sets default appearance.
+     * Changes appearance of element if it is selected, otherwise sets default appearance.
      * @param b Element is selected
      */
     public void selected(boolean b) {
@@ -96,21 +98,6 @@ public class GClassElement {
      */
     public GClassDiagram getOwner() {
         return owner;
-    }
-
-    /**
-     * Stores relative positions of baseLayout into variable relativePos.
-     */
-    public void storeRelativePosition() {
-        relativePos = new Point2D(baseLayout.getTranslateX(), baseLayout.getTranslateY());
-    }
-
-    /**
-     * Gets relative positions of baseLayout.
-     * @return X and Y coordinates of baseLayout
-     */
-    public Point2D getRelativePosition() {
-        return relativePos;
     }
 
     /**
@@ -163,17 +150,6 @@ public class GClassElement {
         operationLabel.setAlignment(Pos.CENTER_LEFT);
         operationLabel.setPadding(new Insets(3, 3, 3, 3));
         operationsBox.getChildren().add(operationLabel);
-    }
-
-    /**
-     * Removes attribute from class element given attribute name.
-     * Nothing happens if given attribute is not in class element.
-     * @param attrName Attribute's name
-     */
-    public void removeAttribute(String attrName) {
-        UMLAttribute attr = model.getAttribute(attrName);
-        if (attr != null)
-            removeAttribute(attr);
     }
 
     /**
@@ -333,7 +309,6 @@ public class GClassElement {
 
         // place it on canvas
         canvas.getChildren().addAll(baseLayout);
-        // relativePos = new Point2D(baseLayout.getTranslateX(), baseLayout.getTranslateY());
     }
 
     /**
@@ -361,6 +336,5 @@ public class GClassElement {
                 attributesBox.getChildren().add(attribute);
             }
         }
-
     }
 }

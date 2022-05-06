@@ -1,9 +1,23 @@
+/**
+ * @brief Declaration of UMLRelation class.
+ * UMLClass represents abstract structure of relation in class diagram.
+ *
+ * This source code serves as submission for semester assignment of class IJA at FIT, BUT 2021/22.
+ *
+ * @file UMLRelation.java
+ * @date 03/05/2022
+ * @authors Hung Do      (xdohun00)
+ *          Petr Kolarik (xkolar79)
+ */
 package ija.umleditor.models;
 
 import org.json.JSONObject;
 
 import java.util.Objects;
 
+/**
+ * Declaration of UMLRelation class.
+ */
 public final class UMLRelation {
 
     private UMLClass src;
@@ -25,18 +39,6 @@ public final class UMLRelation {
     }
 
     /**
-     * Class {@code UMLRelation} constructor
-     * @param src Source class
-     * @param dest Destination class
-     * @param type Relation type
-     */
-    public UMLRelation(UMLClass src, UMLClass dest, RelationType type) {
-        this.src = Objects.requireNonNull(src);
-        this.dest = Objects.requireNonNull(dest);
-        relationType = type;
-    }
-
-    /**
      * Returns relation type
      * @return This relation's type
      */
@@ -44,6 +46,10 @@ public final class UMLRelation {
         return relationType;
     }
 
+    /**
+     * Updates relation type
+     * @param relationType Instance of RelationType
+     */
     public void setRelationType(RelationType relationType) {
         this.relationType = relationType;
         if (relationType == RelationType.INHERITANCE) {

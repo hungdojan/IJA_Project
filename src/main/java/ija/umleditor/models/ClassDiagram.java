@@ -1,9 +1,7 @@
 /**
-* @brief Declaration of UMLClass class.
-* UMLClass represents abstract structure of user-defined class in the class diagram. It contains attributes and
-* operations that objects from this class can use in sequence diagram. Class can be set as abstract meaning
-* sequence diagrams cannot create object from this class. Class can derive from other classes or form other types
-* of relations between them.
+ * @brief Declaration of ClassDiagram class.
+ * ClassDiagram class represents abstract structure that holds class diagram data.
+ * There are elements like classes, interfaces and sequence diagram stored in the class.
 *
 * This source code serves as submission for semester assignment of class IJA at FIT, BUT 2021/22.
 *
@@ -20,12 +18,15 @@ import org.json.JSONObject;
 
 import java.util.*;
 
+/**
+ * Declaration of ClassDiagram class.
+ */
 public class ClassDiagram extends Element {
 
     /** Collection of classifiers */
     protected List<UMLClassifier> classElements;
     /** Collection of sequence diagrams */
-    protected List<SequenceDiagram> sequenceDiagrams = null;
+    protected List<SequenceDiagram> sequenceDiagrams;
 
     public static UMLClassifier undefClassifier = new UMLClassifier("#UNDEF");
 
@@ -71,26 +72,6 @@ public class ClassDiagram extends Element {
      */
     public List<SequenceDiagram> getSequenceDiagrams() {
         return Collections.unmodifiableList(sequenceDiagrams);
-    }
-
-    /**
-     * Loads content saved in the JSON file.
-     * @param path File path
-     */
-    public static ClassDiagram initClassDiagramFromFile(String path) {
-        // TODO:
-        return null;
-    }
-
-    /**
-     * Store class diagram to the file.
-     * Content is stored in JSON format.
-     * @param classDiagram Instance of ClassDiagram to store
-     * @param path         Path to file
-     */
-    public static void saveClassDiagramToFile(ClassDiagram classDiagram, String path) {
-        // TODO:
-        System.out.println("Imma save this shit");
     }
 
     /**
@@ -218,6 +199,10 @@ public class ClassDiagram extends Element {
                 .findFirst().orElse(null);
     }
 
+    /**
+     * Creates list of all classes.
+     * @return List of instances of UMLClass.
+     */
     public List<UMLClass> getClasses() {
         List<UMLClass> classes = new ArrayList<>();
         for (var classifier : classElements) {
@@ -227,6 +212,11 @@ public class ClassDiagram extends Element {
         return classes;
     }
 
+    /**
+     * Finds if classifier is in list of classes.
+     * @param classifier Instance of UMLClassifier.
+     * @return True if it is found.
+     */
     public boolean isInClassDiagram(UMLClassifier classifier) {
         return classElements.contains(classifier);
     }

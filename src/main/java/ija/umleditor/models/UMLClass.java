@@ -1,3 +1,17 @@
+/**
+ * @brief Declaration of UMLClass class.
+ * UMLClass represents abstract structure of user-defined class in the class diagram. It contains attributes and
+ * operations that objects from this class can use in sequence diagram. Class can be set as abstract meaning
+ * sequence diagrams cannot create object from this class. Class can derive from other classes or form other types
+ * of relations between them.
+ *
+ * This source code serves as submission for semester assignment of class IJA at FIT, BUT 2021/22.
+ *
+ * @file UMLClass.java
+ * @date 03/05/2022
+ * @authors Hung Do      (xdohun00)
+ *          Petr Kolarik (xkolar79)
+ */
 package ija.umleditor.models;
 
 import javafx.beans.property.BooleanProperty;
@@ -11,6 +25,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Declaration of UMLClass class.
+ */
 public class UMLClass extends UMLClassifier {
 
     private int attributeCounter = 1;
@@ -29,25 +46,51 @@ public class UMLClass extends UMLClassifier {
         super(name, true);
         attributes = new ArrayList<>();
     }
+
+    /**
+     * Returns number of attributes.
+     * @return Number of attributes
+     */
     public int getAttributeCounter() {
         return attributeCounter;
     }
 
+    /**
+     * Returns number of operations.
+     * @return Number of operations.
+     */
     public int getOperationCounter() {
         return operationCounter;
     }
 
+    /**
+     * Returns stereotype of class.
+     * @return Stereotype
+     */
     public String getStereotype() {
         return stereotypeProperty.get();
     }
 
+    /**
+     * Sets stereotype to class.
+     * @param stereotype Stereotype to set
+     */
     public void setStereotype(String stereotype) {
         stereotypeProperty.set(stereotype);
     }
 
+    /**
+     * Returns if property is abstract.
+     * @return Boolean value if property is abstract.
+     */
     public BooleanProperty getAbstractProperty() {
         return abstractProperty;
     }
+
+    /**
+     * Returns stereotype as instance of StringProperty
+     * @return Instance of StringProperty
+     */
     public StringProperty getStereotypeProperty() {
         return stereotypeProperty;
     }
@@ -86,14 +129,6 @@ public class UMLClass extends UMLClassifier {
      */
     public List<UMLAttribute> getAttributes() {
         return Collections.unmodifiableList(attributes);
-    }
-
-    /**
-     * Returns set of parent classes.
-     * @return Immutable set of base classes.
-     */
-    public Set<UMLClass> getParentClasses() {
-        return Collections.unmodifiableSet(parentClasses);
     }
 
     /**
@@ -143,6 +178,10 @@ public class UMLClass extends UMLClassifier {
         return false;
     }
 
+    /**
+     * Adds attributes to class.
+     * @param attrs Instances of UMLAttribute to add
+     */
     public void addAttributes(UMLAttribute... attrs) {
         for (var a : attrs) {
             addAttribute(a);

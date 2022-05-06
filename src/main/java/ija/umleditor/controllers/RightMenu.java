@@ -15,37 +15,47 @@ import ija.umleditor.models.*;
 import ija.umleditor.template.Templates;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * Class that creates right menu to edit selected element.
+ */
 public class RightMenu {
-    private Accordion base;
-    private GClassElement baseElement;
+    private final Accordion base;
+    private final GClassElement baseElement;
     private VBox operationsBox;
     private VBox attributesBox;
     private ComboBox<String> typesCB;
 
-    public Accordion getBase() {
-        return base;
-    }
-
-    private Node getNodeFromGridPane(GridPane gridPane, int col, int row) {
+    /**
+     * Gets node from grid.
+     *
+     * @param gridPane Instance of GridPane that contains the node.
+     * @return Either the node or null if nothing was found.
+     */
+    private Node getNodeFromGridPane(GridPane gridPane) {
         for (Node child : gridPane.getChildren()) {
-            if (GridPane.getColumnIndex(child) == col && GridPane.getRowIndex(child) == row) {
+            if (GridPane.getColumnIndex(child) == 0 && GridPane.getRowIndex(child) == 1) {
                 return child;
             }
         }
         return null;
     }
 
+    /**
+     * Creates HBox with nodes.
+     * @param nodes Nodes to be put into box.
+     * @return Instance of HBox.
+     */
     private HBox createHBox(Node... nodes) {
         HBox hb = new HBox();
         hb.getChildren().addAll(nodes);
@@ -106,13 +116,19 @@ public class RightMenu {
         return attributeTP;
     }
 
+    /**
+     * Creates HBox for parameters.
+     * @param operation Instance of UMLOperation
+     * @param attributesVBox Layout to insert HBox into.
+     * @param commandBuilder Instance for undo and redo actions.
+     * @param item Parameter to be added.
+     * @return Instance of HBox filled with name and type of the parameter.
+     */
     private HBox createParameterHBox(UMLOperation operation, VBox attributesVBox, CommandBuilder commandBuilder, UMLAttribute item) {
-        var itemHBox = createAttributeHBox(item, null, true);
+        var itemHBox = createAttributeHBox(item, null);
         var deleteButton = (Button) itemHBox.getChildren().get(3);
         var typeField = (TextField) itemHBox.getChildren().get(1);
         var nameField = (TextField) itemHBox.getChildren().get(2);
-        // var visibleComboBox = (ComboBox) itemHBox.getChildren().get(0);
-        // TODO: set visible combo box to right visibility
         item.parent = operation; // assign parent operation to notify parent operation when name is updated
         // delete button action
         deleteButton.setOnAction(e -> {
@@ -163,7 +179,6 @@ public class RightMenu {
                 public void undo() {
                     item.setType(oldType);
                     operation.update();
-                    // TODO: sequence diagram update??
                 }
 
                 @Override
@@ -212,91 +227,60 @@ public class RightMenu {
     }
 
     /**
-     * Creates attribute box with its visibility, type, name and delete button. 
-     * @param item Instance of UMLAttribute
+     * Creates attribute box with its visibility, type, name and delete button.
+     *
+     * @param item                Instance of UMLAttribute
      * @param parameterTitledPane TitlePane containing parameters of operation
-     * @param setVisibility If anything other than parameter
-     * @return
+     * @return Instance of HBox filled with visibility, name and type od attribute or operation.
      */
-    private HBox createAttributeHBox(UMLAttribute item, TitledPane parameterTitledPane, boolean setVisibility) {
+    private HBox createAttributeHBox(UMLAttribute item, TitledPane parameterTitledPane) {
         TextField typeField = new TextField(item.getType().getName());
         TextField textField = new TextField(item.getName());
         Button deleteButton = new Button("Delete");
+        deleteButton.setStyle("-fx-background-radius: 15px");
         deleteButton.setMinWidth(65);
         HBox editBox = createHBox(typeField, textField, deleteButton);
-        if (setVisibility) {
-            ObservableList<Character> options =
-                    FXCollections.observableArrayList(
-                            '+',
-                            '-',
-                            '~',
-                            '#'
-                    );
-            ComboBox<Character> visibilityCB = new ComboBox<>(options);
-            visibilityCB.setValue(options.stream().filter(x -> item.getVisibility() == x.charValue()).findFirst().orElse(options.get(0)));
-            visibilityCB.setMinWidth(60);
-            visibilityCB.setOnAction(ev -> {
-                baseElement.getOwner().getCommandBuilder().execute(new ICommand() {
-                    final char oldVisibility = item.getVisibility();
-                    final char newVisibility = visibilityCB.getValue();
-                    @Override
-                    public void undo() {
-                        item.setVisibility(oldVisibility);
-                    }
+        ObservableList<Character> options =
+                FXCollections.observableArrayList(
+                        '+',
+                        '-',
+                        '~',
+                        '#'
+                );
+        ComboBox<Character> visibilityCB = new ComboBox<>(options);
+        visibilityCB.setValue(options.stream().filter(x -> item.getVisibility() == x.charValue()).findFirst().orElse(options.get(0)));
+        visibilityCB.setMinWidth(60);
+        visibilityCB.setOnAction(ev -> baseElement.getOwner().getCommandBuilder().execute(new ICommand() {
+            final char oldVisibility = item.getVisibility();
+            final char newVisibility = visibilityCB.getValue();
+            @Override
+            public void undo() {
+                item.setVisibility(oldVisibility);
+            }
 
-                    @Override
-                    public void redo() {
-                        execute();
-                    }
+            @Override
+            public void redo() {
+                execute();
+            }
 
-                    @Override
-                    public void execute() {
-                        item.setVisibility(newVisibility);
-                    }
-                });
-            });
-            editBox.getChildren().add(0, visibilityCB);
-        }
+            @Override
+            public void execute() {
+                item.setVisibility(newVisibility);
+            }
+        }));
+        editBox.getChildren().add(0, visibilityCB);
         HBox.setHgrow(textField, Priority.ALWAYS);
         // remove attribute event
         deleteButton.setOnAction(ev -> {
-            // TODO: remove boxes when empty
-            baseElement.getOwner().getCommandBuilder().execute(new ICommand() {
-                final UMLAttribute attr = item;
-                final VBox parentLayout = (VBox) parameterTitledPane.getParent();
-                final TitledPane paramPane = parameterTitledPane;
-                @Override
-                public void undo() {
-                    if (attr instanceof UMLOperation) {
-                        baseElement.addOperation((UMLOperation) attr);
-                        operationsBox.getChildren().add(editBox);
-                    } else {
-                        baseElement.addAttribute(attr);
-                        operationsBox.getChildren().add(editBox);
-                    }
-                    if (paramPane != null) {
-                        parentLayout.getChildren().add(paramPane);
-                    }
-                }
-
-                @Override
-                public void redo() {
-                    execute();
-                }
-
-                @Override
-                public void execute() {
-                    baseElement.removeAttribute(attr);
-                    if (attr instanceof UMLOperation) {
-                        operationsBox.getChildren().remove(editBox);
-                    } else {
-                        attributesBox.getChildren().remove(editBox);
-                    }
-                    if (parameterTitledPane != null) {
-                        ((VBox) parameterTitledPane.getParent()).getChildren().remove(parameterTitledPane);
-                    }
-                }
-            });
+            baseElement.removeAttribute(item);
+            if (item instanceof UMLOperation) {
+                operationsBox.getChildren().remove(editBox);
+            } else {
+                attributesBox.getChildren().remove(editBox);
+            }
+            if (parameterTitledPane != null) {
+                ((VBox) parameterTitledPane.getParent()).getChildren().remove(parameterTitledPane);
+            }
         });
         // set model type
         typeField.setOnAction(ev -> {
@@ -322,17 +306,10 @@ public class RightMenu {
         // set model name
         textField.setOnAction(ev -> {
             if (textField.getText().isBlank()) {
-                // TODO: alert
                 Alert warning = new Alert(Alert.AlertType.WARNING);
                 warning.setTitle("Blank space");
                 warning.setContentText("Text field cannot be empty");
                 warning.show();
-                return;
-            }
-            UMLClass modelClass = baseElement.getModel();
-
-            if (!modelClass.updateAttributeName(item.getName(), textField.getText())) {
-                // TODO: alert attribute already exists
             }
         });
         return editBox;
@@ -368,7 +345,7 @@ public class RightMenu {
         for (var item : baseElement.getModel().getRelations()) {
             GridPane relationGrid = new GridPane();
             Button deleteRelationButton = new Button("Delete");
-//            TextField srcField = new TextField(item.getSrc().getName());
+            deleteRelationButton.setStyle("-fx-background-radius: 15px");
 
             String content;
             if (Objects.equals(baseElement.getModel().getName(), item.getDest().getName())) {
@@ -396,7 +373,6 @@ public class RightMenu {
             });
 
             Label typeLabel = new Label("Type:");
-//            Label pickedTypeLabel = new Label("selected type");
             ObservableList<String> relationTypes =
                     FXCollections.observableArrayList(EnumSet.allOf(RelationType.class).stream()
                             .map(RelationType::name).collect(Collectors.toList())
@@ -404,7 +380,6 @@ public class RightMenu {
             typesCB = new ComboBox<>(relationTypes);
             typesCB.setValue(item.getRelationType().toString());
             typesCB.setOnAction(ev -> {
-                // TODO:
                 var gRelation = baseElement.getOwner().getRelation((UMLClass) item.getSrc(), (UMLClass) item.getDest());
                 // undo and redo action for assigning relation type
                 baseElement.getOwner().getCommandBuilder().execute(new ICommand() {
@@ -430,6 +405,7 @@ public class RightMenu {
             });
 
             Button swapButton = new Button("Swap");
+            swapButton.setStyle("-fx-background-radius: 15px");
             swapButton.setOnAction(ev -> {
                 var gRelation = baseElement.getOwner().getRelation((UMLClass) item.getSrc(), (UMLClass) item.getDest());
                 if (gRelation == null)
@@ -477,8 +453,6 @@ public class RightMenu {
                 baseElement.getOwner().addRelation(new GRelation(
                         baseElement, baseElement.getOwner().getClassElement(baseClassDiagram.getClass(content)), baseElement.getOwner().getCanvas(), rel));
             }
-
-//            relationGrid.getChildren().addAll(destField, deleteRelationButton);
             relationsVBox.getChildren().add(relationGrid);
         }
 
@@ -494,7 +468,7 @@ public class RightMenu {
             // no new row will be created
             if (relationsVBox.getChildren().size() > 1) {
                 GridPane gridPane = (GridPane) relationsVBox.getChildren().get(relationsVBox.getChildren().size() - 2);
-                TextField lastTextField = (TextField) getNodeFromGridPane(gridPane, 0, 1);
+                TextField lastTextField = (TextField) getNodeFromGridPane(gridPane);
                 assert lastTextField != null;
                 if (lastTextField.isEditable())
                     return;
@@ -503,7 +477,9 @@ public class RightMenu {
             Label destLabel = new Label("Destination:");
             TextField destField = new TextField();
             Button deleteRelationButton = new Button("Delete");
+            deleteRelationButton.setStyle("-fx-background-radius: 15px");
             Button drawRelationButton = new Button("Draw");
+            drawRelationButton.setStyle("-fx-background-radius: 15px");
 
             Label typeLabel = new Label("Select type:");
             ObservableList<String> relationTypes =
@@ -512,7 +488,6 @@ public class RightMenu {
                     );
             ComboBox<String> typesCB = new ComboBox<>(relationTypes);
             typesCB.setOnAction(e -> {
-                // TODO:
                 var gRelation = baseElement.getOwner().getRelation(
                         baseElement.getModel(),
                         baseElement.getOwner().getModel().getClass(destField.getText()));
@@ -542,7 +517,6 @@ public class RightMenu {
                     return;
                 }
                 var relation = baseElement.getModel().getRelation(destinationClass);
-                // var src = (UMLClass) .getSrc();
                 baseElement.getOwner().addRelation(
                         new GRelation(baseElement, baseElement.getOwner().getClassElement(destinationClass), baseElement.getOwner().getCanvas(), relation));
                 destField.setEditable(false);
@@ -560,7 +534,6 @@ public class RightMenu {
                 // TODO: remove gRelation from the canvas
             });
 
-//            relationGrid.getChildren().addAll(destField, deleteRelationButton);
             relationGrid.setMaxWidth(Double.MAX_VALUE);
             HBox.setHgrow(destField, Priority.ALWAYS);
             relationsVBox.getChildren().add(relationsVBox.getChildren().size()-1, relationGrid);
@@ -595,11 +568,17 @@ public class RightMenu {
         List<UMLAttribute> lofAttributes = baseElement.getModel().getAttributes();
         for (var item : lofAttributes) {
             if (item instanceof UMLOperation) {
+
+                // create separator between operations
+                Separator sep = new Separator();
+                sep.setMaxWidth(Double.MAX_VALUE);
+                sep.setPadding(new Insets(5, 0, 5, 0));
+
                 TitledPane listOfAttributesPane = createAttributeTitledPane((UMLOperation) item);
                 HBox editBox = createAttributeHBox(item, listOfAttributesPane, true);
                 operationsBox.getChildren().addAll(editBox, listOfAttributesPane);
             } else {
-                HBox editBox = createAttributeHBox(item, null, true);
+                HBox editBox = createAttributeHBox(item, null);
                 attributesBox.getChildren().add(editBox);
             }
         }
@@ -616,7 +595,7 @@ public class RightMenu {
             if (baseElement.getModel().getAttribute(attr.getName()) != null)
                 return;
 
-            HBox newAttribute = createAttributeHBox(attr, null, true);
+            HBox newAttribute = createAttributeHBox(attr, null);
             // create undo and redo action for adding attribute
             baseElement.getOwner().getCommandBuilder().execute(new ICommand() {
                 final int linePosition = attributesBox.getChildren().size()-1;
@@ -652,14 +631,20 @@ public class RightMenu {
             if (baseElement.getModel().getAttribute(attr.getName()) != null)
                 return;
             TitledPane listOfTitleAttributes = createAttributeTitledPane(attr);
-            HBox newAttribute = createAttributeHBox(attr, listOfTitleAttributes, true);
+            HBox newAttribute = createAttributeHBox(attr, listOfTitleAttributes);
+
+            // create separator between operations
+            Separator sep = new Separator();
+            sep.setMaxWidth(Double.MAX_VALUE);
+            sep.setPadding(new Insets(5, 0, 5, 0));
+
             // create undo and redo action
             baseElement.getOwner().getCommandBuilder().execute(new ICommand() {
                 @Override
                 public void undo() {
                     baseElement.removeAttribute(attr);
                     baseElement.getModel().removeAttribute(attr);
-                    operationsBox.getChildren().removeAll(newAttribute, listOfTitleAttributes);
+                    operationsBox.getChildren().removeAll(newAttribute, listOfTitleAttributes, sep);
                 }
 
                 @Override
@@ -673,6 +658,7 @@ public class RightMenu {
                     baseElement.getModel().addAttribute(attr);
                     operationsBox.getChildren().add(operationsBox.getChildren().size()-1, newAttribute);
                     operationsBox.getChildren().add(operationsBox.getChildren().size()-1, listOfTitleAttributes);
+                    operationsBox.getChildren().add(operationsBox.getChildren().size()-1, sep);
                 }
             });
         });
@@ -712,27 +698,24 @@ public class RightMenu {
         // init stereotype text field
         TextField stereotypeField = new TextField(baseElement.getModel().getStereotype());
         stereotypeField.promptTextProperty().bindBidirectional(baseElement.getModel().getStereotypeProperty());
-        stereotypeField.setOnAction(ev -> {
-            baseElement.getOwner().getCommandBuilder().execute(new ICommand() {
-                final String oldStereotype = baseElement.getModel().getStereotype();
-                final String newStereotype = stereotypeField.getText();
-                @Override
-                public void undo() {
-                    baseElement.getModel().setStereotype(oldStereotype);
-                }
+        stereotypeField.setOnAction(ev -> baseElement.getOwner().getCommandBuilder().execute(new ICommand() {
+            final String oldStereotype = baseElement.getModel().getStereotype();
+            final String newStereotype = stereotypeField.getText();
+            @Override
+            public void undo() {
+                baseElement.getModel().setStereotype(oldStereotype);
+            }
 
-                @Override
-                public void redo() {
-                    execute();
-                }
+            @Override
+            public void redo() {
+                execute();
+            }
 
-                @Override
-                public void execute() {
-                    baseElement.getModel().setStereotype(newStereotype);
-                }
-            });
-            // baseElement.getModel().setStereotype(stereotypeField.getText());
-        });
+            @Override
+            public void execute() {
+                baseElement.getModel().setStereotype(newStereotype);
+            }
+        }));
 
         // check button for setting object abstract
         Label isAbstract = new Label("Abstract:");
@@ -760,7 +743,6 @@ public class RightMenu {
                 return;
             }
             if (classDiagram.getClassifier(nameField.getText()) != null) {
-                // TODO: class can replace classifier
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Error");
                 alert.setContentText("Classifier with name " + nameField.getText() + " is already in use");
