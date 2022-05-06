@@ -241,7 +241,15 @@ public class GMessage {
      * @param offsetDown Number of position to move down.
      */
     public void moveContent(int offsetDown) {
-        msgLine.setLayoutY(msgLine.getLayoutY() + offsetDown * offsetYPos);
+        if (msgLine != null)
+            msgLine.setLayoutY(msgLine.getLayoutY() + offsetDown * offsetYPos);
+        if (line1 != null)
+            line1.setLayoutY(line1.getLayoutY() + offsetDown * offsetYPos);
+        if (line2 != null)
+            line2.setLayoutY(line2.getLayoutY() + offsetDown * offsetYPos);
+        if (line3 != null)
+            line3.setLayoutY(line3.getLayoutY() + offsetDown * offsetYPos);
+
         nameLabel.setLayoutY(nameLabel.getLayoutY() + offsetDown * offsetYPos);
         arrow.setLayoutY(arrow.getLayoutY() + offsetDown * offsetYPos);
     }
@@ -300,6 +308,14 @@ public class GMessage {
                 }
             }
             root.getChildren().add(arrow);
+        }
+    }
+
+    public void updateColor(boolean isError) {
+        if (isError) {
+            // TODO: red
+        } else {
+            // TODO: black
         }
     }
 }

@@ -176,7 +176,59 @@ public class GClassDiagram {
         Tab tab = new Tab("Class diagram");
         tab.setClosable(false);
         // set flag to ignore deleting element when class diagram tab is not in focus
-        tab.setOnSelectionChanged(ev -> deleteFlag = tab.isSelected());
+        tab.setOnSelectionChanged(e -> {
+            deleteFlag = tab.isSelected();
+            if (tab.isSelected()) {
+                // event to delete selected class element with DELETE
+                rootTab.setOnKeyPressed(ev -> {
+                    if (ev.getCode() == KeyCode.DELETE && selectedElement != null && deleteFlag) {
+                        commandBuilder.execute(new ICommand() {
+                            final int index = classDiagram.getClassElements().indexOf(selectedElement.getModel());
+                            final GClassElement element = selectedElement;
+                            @Override
+                            public void undo() {
+                                model.getClassElements().add(index, element.getModel());
+                                canvas.getChildren().add(element.getBaseLayout());
+                                gClassElementList.add(element);
+                                // update sequence diagrams
+                                GClassDiagram.this.notify("class");
+                            }
+
+                            @Override
+                            public void redo() {
+                                model.removeClassElement(element.getModel());
+                                canvas.getChildren().remove(element.getBaseLayout());
+                                gClassElementList.remove(element);
+                                // update sequence diagrams
+                                GClassDiagram.this.notify("class");
+                            }
+
+                            @Override
+                            public void execute() {
+                                element.selected(false);
+                                // remove class element from class diagram
+                                model.removeClassElement(element.getModel());
+                                // remove element from canvas
+                                canvas.getChildren().remove(element.getBaseLayout());
+                                // remove gClassElement
+                                gClassElementList.remove(element);
+                                // update sequence diagrams
+                                GClassDiagram.this.notify("class");
+                            }
+                        });
+                        // resets element
+                        setSelectedElement(null);
+                    }
+                    else if (ev.isControlDown() && ev.getCode() == KeyCode.Z) {
+                        commandBuilder.undo();
+                    }
+                    else if (ev.isControlDown() && ev.getCode() == KeyCode.Y) {
+                        commandBuilder.redo();
+                    }
+                });
+
+            }
+        });
 
         // base content
         content = new HBox();
@@ -306,53 +358,6 @@ public class GClassDiagram {
         // right menu with selected class
         content.getChildren().addAll(leftPane, drawable);
 
-        // event to delete selected class element with DELETE
-        rootTab.setOnKeyPressed(ev -> {
-            if (ev.getCode() == KeyCode.DELETE && selectedElement != null && deleteFlag) {
-                commandBuilder.execute(new ICommand() {
-                    final int index = classDiagram.getClassElements().indexOf(selectedElement.getModel());
-                    final GClassElement element = selectedElement;
-                    @Override
-                    public void undo() {
-                        model.getClassElements().add(index, element.getModel());
-                        canvas.getChildren().add(element.getBaseLayout());
-                        gClassElementList.add(element);
-                        // update sequence diagrams
-                        GClassDiagram.this.notify("class");
-                    }
-
-                    @Override
-                    public void redo() {
-                        model.removeClassElement(element.getModel());
-                        canvas.getChildren().remove(element.getBaseLayout());
-                        gClassElementList.remove(element);
-                        // update sequence diagrams
-                        GClassDiagram.this.notify("class");
-                    }
-
-                    @Override
-                    public void execute() {
-                        element.selected(false);
-                        // remove class element from class diagram
-                        model.removeClassElement(element.getModel());
-                        // remove element from canvas
-                        canvas.getChildren().remove(element.getBaseLayout());
-                        // remove gClassElement
-                        gClassElementList.remove(element);
-                        // update sequence diagrams
-                        GClassDiagram.this.notify("class");
-                    }
-                });
-                // resets element
-                setSelectedElement(null);
-            }
-            else if (ev.isControlDown() && ev.getCode() == KeyCode.Z) {
-                commandBuilder.undo();
-            }
-            else if (ev.isControlDown() && ev.getCode() == KeyCode.Y) {
-                commandBuilder.redo();
-            }
-        });
 
     }
 

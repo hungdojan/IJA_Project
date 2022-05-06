@@ -236,7 +236,24 @@ public class RightMenu {
             visibilityCB.setValue(options.stream().filter(x -> item.getVisibility() == x.charValue()).findFirst().orElse(options.get(0)));
             visibilityCB.setMinWidth(60);
             visibilityCB.setOnAction(ev -> {
-                item.setVisibility(visibilityCB.getValue());
+                baseElement.getOwner().getCommandBuilder().execute(new ICommand() {
+                    final char oldVisibility = item.getVisibility();
+                    final char newVisibility = visibilityCB.getValue();
+                    @Override
+                    public void undo() {
+                        item.setVisibility(oldVisibility);
+                    }
+
+                    @Override
+                    public void redo() {
+                        execute();
+                    }
+
+                    @Override
+                    public void execute() {
+                        item.setVisibility(newVisibility);
+                    }
+                });
             });
             editBox.getChildren().add(0, visibilityCB);
         }
@@ -244,15 +261,42 @@ public class RightMenu {
         // remove attribute event
         deleteButton.setOnAction(ev -> {
             // TODO: remove boxes when empty
-            baseElement.removeAttribute(item);
-            if (item instanceof UMLOperation) {
-                operationsBox.getChildren().remove(editBox);
-            } else {
-                attributesBox.getChildren().remove(editBox);
-            }
-            if (parameterTitledPane != null) {
-                ((VBox) parameterTitledPane.getParent()).getChildren().remove(parameterTitledPane);
-            }
+            baseElement.getOwner().getCommandBuilder().execute(new ICommand() {
+                final UMLAttribute attr = item;
+                final VBox parentLayout = (VBox) parameterTitledPane.getParent();
+                final TitledPane paramPane = parameterTitledPane;
+                @Override
+                public void undo() {
+                    if (attr instanceof UMLOperation) {
+                        baseElement.addOperation((UMLOperation) attr);
+                        operationsBox.getChildren().add(editBox);
+                    } else {
+                        baseElement.addAttribute(attr);
+                        operationsBox.getChildren().add(editBox);
+                    }
+                    if (paramPane != null) {
+                        parentLayout.getChildren().add(paramPane);
+                    }
+                }
+
+                @Override
+                public void redo() {
+                    execute();
+                }
+
+                @Override
+                public void execute() {
+                    baseElement.removeAttribute(attr);
+                    if (attr instanceof UMLOperation) {
+                        operationsBox.getChildren().remove(editBox);
+                    } else {
+                        attributesBox.getChildren().remove(editBox);
+                    }
+                    if (parameterTitledPane != null) {
+                        ((VBox) parameterTitledPane.getParent()).getChildren().remove(parameterTitledPane);
+                    }
+                }
+            });
         });
         // set model type
         typeField.setOnAction(ev -> {
@@ -362,8 +406,27 @@ public class RightMenu {
             typesCB.setOnAction(ev -> {
                 // TODO:
                 var gRelation = baseElement.getOwner().getRelation((UMLClass) item.getSrc(), (UMLClass) item.getDest());
-                item.setRelationType(RelationType.valueOf(typesCB.getValue()));
-                gRelation.updateColor();
+                // undo and redo action for assigning relation type
+                baseElement.getOwner().getCommandBuilder().execute(new ICommand() {
+                    final RelationType currentType = item.getRelationType();
+                    final RelationType newType = RelationType.valueOf(typesCB.getValue());
+                    @Override
+                    public void undo() {
+                        item.setRelationType(currentType);
+                        gRelation.updateColor();
+                    }
+
+                    @Override
+                    public void redo() {
+                        execute();
+                    }
+
+                    @Override
+                    public void execute() {
+                        item.setRelationType(newType);
+                        gRelation.updateColor();
+                    }
+                });
             });
 
             Button swapButton = new Button("Swap");
@@ -371,13 +434,32 @@ public class RightMenu {
                 var gRelation = baseElement.getOwner().getRelation((UMLClass) item.getSrc(), (UMLClass) item.getDest());
                 if (gRelation == null)
                     return;
-                // TODO: update label
-                if (Objects.equals(directionLabel.getText(), "Source:")) {
-                    directionLabel.setText("Destination:");
-                } else if (Objects.equals(directionLabel.getText(), "Destination:")) {
-                    directionLabel.setText("Source:");
-                }
-                gRelation.swapDirection();
+                baseElement.getOwner().getCommandBuilder().execute(new ICommand() {
+                    @Override
+                    public void undo() {
+                        if (Objects.equals(directionLabel.getText(), "Source:")) {
+                            directionLabel.setText("Destination:");
+                        } else if (Objects.equals(directionLabel.getText(), "Destination:")) {
+                            directionLabel.setText("Source:");
+                        }
+                        gRelation.swapDirection();
+                    }
+
+                    @Override
+                    public void redo() {
+                        execute();
+                    }
+
+                    @Override
+                    public void execute() {
+                        if (Objects.equals(directionLabel.getText(), "Source:")) {
+                            directionLabel.setText("Destination:");
+                        } else if (Objects.equals(directionLabel.getText(), "Destination:")) {
+                            directionLabel.setText("Source:");
+                        }
+                        gRelation.swapDirection();
+                    }
+                });
             });
             relationGrid.add(directionLabel, 0, 0);
             relationGrid.add(typeLabel, 1, 0);
@@ -413,6 +495,7 @@ public class RightMenu {
             if (relationsVBox.getChildren().size() > 1) {
                 GridPane gridPane = (GridPane) relationsVBox.getChildren().get(relationsVBox.getChildren().size() - 2);
                 TextField lastTextField = (TextField) getNodeFromGridPane(gridPane, 0, 1);
+                assert lastTextField != null;
                 if (lastTextField.isEditable())
                     return;
             }
@@ -629,7 +712,27 @@ public class RightMenu {
         // init stereotype text field
         TextField stereotypeField = new TextField(baseElement.getModel().getStereotype());
         stereotypeField.promptTextProperty().bindBidirectional(baseElement.getModel().getStereotypeProperty());
-        stereotypeField.setOnAction(ev -> baseElement.getModel().setStereotype(stereotypeField.getText()));
+        stereotypeField.setOnAction(ev -> {
+            baseElement.getOwner().getCommandBuilder().execute(new ICommand() {
+                final String oldStereotype = baseElement.getModel().getStereotype();
+                final String newStereotype = stereotypeField.getText();
+                @Override
+                public void undo() {
+                    baseElement.getModel().setStereotype(oldStereotype);
+                }
+
+                @Override
+                public void redo() {
+                    execute();
+                }
+
+                @Override
+                public void execute() {
+                    baseElement.getModel().setStereotype(newStereotype);
+                }
+            });
+            // baseElement.getModel().setStereotype(stereotypeField.getText());
+        });
 
         // check button for setting object abstract
         Label isAbstract = new Label("Abstract:");
@@ -643,10 +746,7 @@ public class RightMenu {
         } else {
             stereotypeField.setDisable(true);
         }
-        abstractCheck.setOnAction(ev -> {
-            baseElement.getModel().setAbstract(abstractCheck.isSelected());
-            stereotypeField.setDisable(!abstractCheck.isSelected());
-        });
+        baseElement.getModel().getAbstractProperty().bindBidirectional(abstractCheck.selectedProperty());
 
 
         // name label

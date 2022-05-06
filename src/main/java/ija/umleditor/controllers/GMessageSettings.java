@@ -143,8 +143,9 @@ public class GMessageSettings {
             }
         });
         operationCB.setOnAction(ev -> {
-            // TODO:
-            gModel.getModel().setMessage((UMLOperation) gModel.getDstGObject().getModel().getClassOfInstance().getAttribute(operationCB.getValue()));
+            if (gModel != null) {
+                gModel.getModel().setMessage((UMLOperation) gModel.getDstGObject().getModel().getClassOfInstance().getAttribute(operationCB.getValue()));
+            }
         });
         msgTypeCB.setOnAction(ev -> {
             // TODO:

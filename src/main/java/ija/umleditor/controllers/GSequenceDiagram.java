@@ -127,6 +127,28 @@ public class GSequenceDiagram {
 
         baseTab = new Tab(model.getName());
 
+        // setup key shortcuts and actions in current tab
+        baseTab.setOnSelectionChanged(e -> {
+            if (baseTab.isSelected()) {
+                // delete selected object
+                rootTab.setOnKeyPressed(ev -> {
+                    if (ev.getCode() == KeyCode.DELETE && selectedObject != null) {
+                        selectedObject.getModel().close();
+                        for (var m : gMessageList.stream().filter(x -> x.getSrcGObject() == selectedObject ||
+                                x.getDstGObject() == selectedObject).collect(Collectors.toList())) {
+                            // TODO: update gMessages (color??)
+                            m.updateColor(true);
+                        }
+                        canvas.getChildren().remove(selectedObject.getBaseGroup());
+                    } else if (ev.isControlDown() && ev.getCode() == KeyCode.Z) {
+                        commandBuilder.undo();
+                    } else if (ev.isControlDown() && ev.getCode() == KeyCode.Y) {
+                        commandBuilder.redo();
+                    }
+                });
+            }
+        });
+
         // content pane
         baseHBox = new HBox();
 
@@ -172,17 +194,6 @@ public class GSequenceDiagram {
 
         canvas = new AnchorPane();
         drawable.setContent(canvas);
-        drawable.setOnKeyPressed(ev -> {
-            System.out.println("tu");
-            if (ev.getCode() == KeyCode.DELETE && selectedObject != null) {
-                selectedObject.getModel().close();
-                for (var m : gMessageList.stream().filter(x -> x.getSrcGObject() == selectedObject ||
-                        x.getDstGObject() == selectedObject).collect(Collectors.toList())) {
-                    // TODO: update gMessages (color??)
-                }
-                canvas.getChildren().remove(selectedObject.getBaseGroup());
-            }
-        });
         HBox.setHgrow(drawable, Priority.ALWAYS);
         return drawable;
     }
@@ -203,6 +214,7 @@ public class GSequenceDiagram {
         // set name
         Label nameLabel = new Label("Select name:");
         nameLabel.setStyle("-fx-font-weight: bold");
+        nameLabel.setDisable(true);
         TextField nameTF = new TextField();
         nameTF.setOnAction(ev -> {
             // ignore no selected object or no name edit
@@ -221,6 +233,7 @@ public class GSequenceDiagram {
         Label typeObjLabel = new Label("Select type:");
         typeObjLabel.setStyle("-fx-font-weight: bold");
         ComboBox<String> typeCB = new ComboBox<>(observableClassNames);
+        typeCB.setDisable(true);
         typeCB.setMaxWidth(Double.MAX_VALUE);
         typeCB.setOnAction(ev -> {
             if (selectedObject != null) {
@@ -299,6 +312,8 @@ public class GSequenceDiagram {
             // nameField.textProperty().unbind();
             nameField.setText("");
             classCB.setValue("");
+            classCB.setDisable(true);
+            nameField.setDisable(true);
             return;
         }
         selectedObject.selected(true);
@@ -306,6 +321,8 @@ public class GSequenceDiagram {
         // nameField.textProperty().bindBidirectional(selectedObject.getModel().getNameProperty());
         nameField.setText(selectedObject.getModel().getName());
         classCB.setValue(selectedObject.getModel().getClassOfInstance().getName());
+        classCB.setDisable(false);
+        nameField.setDisable(false);
     }
 
     /**
