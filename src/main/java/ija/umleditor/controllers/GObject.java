@@ -142,13 +142,4 @@ public class GObject {
         root.getChildren().addAll(baseGroup);
         line.toBack();
     }
-
-    public void setUndefinedColor(boolean isUndefined) {
-        if (isUndefined) {
-            // TODO: color red -> only border??
-        } else {
-            // TODO: color normal -> only border??
-        }
-
-    }
 }

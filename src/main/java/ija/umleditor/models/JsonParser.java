@@ -114,12 +114,14 @@ public class JsonParser {
                 String dstName = (String) jsonMessage.get("receiver");
                 var receiver = sequenceDiagram.getObject(dstName);
                 String baseOperation = (String) jsonMessage.get("message");
+                MessageType messageType = MessageType.valueOf((String) jsonMessage.get("messageType"));
                 UMLOperation operation;
                 if (receiver == null)
                     operation = SequenceDiagram.undefOperation;
                 else
                     operation = (UMLOperation) receiver.getClassOfInstance().getAttribute(baseOperation);
                 UMLMessage message = new UMLMessage(msgName, sender, receiver, operation);
+                message.setMessageType(messageType);
                 sequenceDiagram.addMessage(message);
             }
             cd.addSequenceDiagram(sequenceDiagram);

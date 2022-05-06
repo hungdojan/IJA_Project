@@ -361,4 +361,15 @@ public class GMessage {
             }
         }
     }
+
+    /**
+     * Puts message back on canvas if "undo" is called.
+     * @param canvas Pane to put the message on.
+     */
+    public void addBackToCanvas(Pane canvas) {
+        if (srcGObject == dstGObject)
+            canvas.getChildren().addAll(line1, line2, line3, arrow, nameLabel);
+        else
+            root.getChildren().addAll(msgLine, arrow, nameLabel);
+    }
 }

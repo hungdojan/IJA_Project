@@ -107,6 +107,13 @@ public class GClassElement {
      * @param attr Instance of attribute
      */
     public void addAttribute(UMLAttribute attr) {
+        if (!model.addAttribute(attr)) {
+            Alert a = new Alert(Alert.AlertType.ERROR);
+            a.setTitle("Error");
+            a.setContentText("Cannot create operation. Attribute/operation with identical name already exists within selected class");
+            a.show();
+            return;
+        }
         if (attributesBox == null) {
             attributesBox = new VBox();
             attributesBox.setStyle("-fx-border-style: dashed dashed dashed dashed; -fx-border-width: 3; -fx-background-color: rgb(173,216,230)");
@@ -172,6 +179,7 @@ public class GClassElement {
                 .findFirst().orElse(null);
 
         children.remove(foundLabel);
+        model.removeAttribute(attr);
         clearVBoxes();
     }
 

@@ -95,7 +95,7 @@ public class UMLOperation extends UMLAttribute implements ISubject {
             result = operationParameters.add(parameter);
             updateName();
         }
-        return false;
+        return result;
     }
 
     /**

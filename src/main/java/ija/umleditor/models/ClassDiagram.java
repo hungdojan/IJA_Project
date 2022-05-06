@@ -206,7 +206,7 @@ public class ClassDiagram extends Element {
     public List<UMLClass> getClasses() {
         List<UMLClass> classes = new ArrayList<>();
         for (var classifier : classElements) {
-            if (classifier instanceof UMLClass)
+            if (classifier instanceof UMLClass && !((UMLClass) classifier).isAbstract())
                 classes.add((UMLClass) classifier);
         }
         return classes;

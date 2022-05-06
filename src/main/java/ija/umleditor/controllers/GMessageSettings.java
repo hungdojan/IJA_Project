@@ -172,7 +172,24 @@ public class GMessageSettings {
         });
         operationCB.setOnAction(ev -> {
             if (gModel != null) {
-                gModel.getModel().setMessage((UMLOperation) gModel.getDstGObject().getModel().getClassOfInstance().getAttribute(operationCB.getValue()));
+                owner.getCommandBuilder().execute(new ICommand() {
+                    final UMLOperation oldOperation = gModel.getModel().getMessage();
+                    final UMLOperation newOperation = (UMLOperation) gModel.getDstGObject().getModel().getClassOfInstance().getAttribute(operationCB.getValue());
+                    @Override
+                    public void undo() {
+                        gModel.getModel().setMessage(oldOperation);
+                    }
+
+                    @Override
+                    public void redo() {
+                        execute();
+                    }
+
+                    @Override
+                    public void execute() {
+                        gModel.getModel().setMessage(newOperation);
+                    }
+                });
             }
         });
         msgTypeCB.setOnAction(ev -> {
@@ -198,6 +215,8 @@ public class GMessageSettings {
                 owner.addGMessage(gModel);
                 owner.getModel().addMessage(messageInstance);
                 owner.setNewMessage(null);
+                destObjCB.setDisable(true);
+                srcObjCB.setDisable(true);
             } else {
                 gModel.getModel().setName(msgTF.getText());
                 gModel.updateText();
@@ -216,6 +235,16 @@ public class GMessageSettings {
             operList.addAll(
                     receiver.getClassOfInstance().getOperations().stream().map(UMLOperation::getName).collect(Collectors.toList())
             );
+            operationCB.setItems(operList);
+            operationCB.setValue(gModel.getModel().getMessage().getName());
+        } else if (Objects.equals(msg, "loadMessages")) {
+            if (gModel == null)
+                return;
+            srcObjCB.setValue(gModel.getModel().getSender().getName());
+            destObjCB.setValue(gModel.getModel().getReceiver().getName());
+            if (gModel.getModel().getMessage() != null) {
+                operationCB.setValue(gModel.getModel().getMessage().getName());
+            }
         }
     }
 }
