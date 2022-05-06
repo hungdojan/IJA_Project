@@ -61,6 +61,14 @@ public class GSequenceDiagram {
     }
 
     /**
+     * Gets command builder.
+     * @return Instance of CommandBuilder
+     */
+    public CommandBuilder getCommandBuilder() {
+        return commandBuilder;
+    }
+
+    /**
      * Adds message to the list of all messages.
      * @param gMessage Message to be added
      */
@@ -82,8 +90,9 @@ public class GSequenceDiagram {
         for (int i = position; i < gMessageList.size(); i++) {
             gMessageList.get(i).moveContent(1);
         }
-        gMessage.moveContent(gMessageList.size() - 1 - position);
-        gMessageList.add(gMessage);
+        countMsg++;
+        gMessageList.add(position, gMessage);
+        gMessage.addBackToCanvas(canvas);
     }
 
     /**
@@ -93,16 +102,18 @@ public class GSequenceDiagram {
      */
     public int removeGMessage(GMessage gMessage) {
         if (gMessage == null)
-            return;
+            return -1;
         int position = gMessageList.indexOf(gMessage);
         if (position < 0)
-            return;
+            return -1;
+        int pos = position;
         gMessage.removeFromCanvas(canvas);
         gMessageList.remove(gMessage);
         // shift of messages present on canvas
         for (; position < gMessageList.size(); position++)
             gMessageList.get(position).moveContent(-1);
         countMsg--;
+        return pos;
     }
 
     /**
@@ -206,7 +217,6 @@ public class GSequenceDiagram {
         }
 
         for (var msg : model.getMessages()) {
-            // TODO: load messages
             var gMessageSettings = new GMessageSettings(observableObjects, menuVBox, this);
             gMessageSettings.loadModel(msg);
             gMessageSettingsList.add(gMessageSettings);
@@ -246,8 +256,8 @@ public class GSequenceDiagram {
         // set name
         Label nameLabel = new Label("Select name:");
         nameLabel.setStyle("-fx-font-weight: bold");
-        nameLabel.setDisable(true);
         TextField nameTF = new TextField();
+        nameTF.setDisable(true);
         nameTF.setOnAction(ev -> {
             // ignore no selected object or no name edit
             if (selectedObject == null || nameTF.getText().isBlank() ||
@@ -371,11 +381,16 @@ public class GSequenceDiagram {
             observableClassNames.clear();
             observableClassNames.addAll(clsNames);
         } else if (Objects.equals(msg, "operation")) {
-            // TODO: update operations
+            for (var gMS : gMessageSettingsList) {
+                gMS.update("operation");
+            }
         } else if (Objects.equals(msg, "object")) {
             var objNames = model.getObjects().stream().map(UMLObject::getName).collect(Collectors.toList());
             observableObjects.clear();
             observableObjects.addAll(objNames);
+            for (var gms : gMessageSettingsList) {
+                gms.update("loadMessages");
+            }
         }
     }
 }

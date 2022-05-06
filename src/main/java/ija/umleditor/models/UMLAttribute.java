@@ -137,6 +137,9 @@ public class UMLAttribute extends Element implements IObserver {
     }
 
     @Override
+    /**
+     * Creates JSON representation of element's content.
+     */
     public JSONObject createJsonObject() {
         JSONObject object = new JSONObject();
         object.put("_class", "UMLAttribute");

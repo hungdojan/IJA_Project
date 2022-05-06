@@ -131,38 +131,9 @@ public class SequenceDiagram extends Element {
         return messages.add(msg);
     }
 
-    public UMLMessage getMessageAt(int pos) {
-        try {
-            return messages.get(pos);
-        } catch (IndexOutOfBoundsException ignored) {
-            return null;
-        }
-    }
-
-    public int getMessagePosition(UMLMessage msg) {
-        if (msg == null)
-            return -1;
-        return messages.indexOf(msg);
-    }
-
-    public boolean moveMessageIntoPosition(UMLMessage msg, int newPos) {
-        // TODO:
-        return false;
-    }
-
-    public boolean removeMessage(UMLMessage msg) {
-        if (msg == null)
-            return false;
-        return messages.remove(msg);
-    }
-
-    public boolean removeMessage(int pos) {
-        var msg = getMessageAt(pos);
-        if (msg == null)
-            return false;
-        return messages.remove(msg);
-    }
-
+    /**
+     * Clear dependencies.
+     */
     public void close() {
         for (var o : objects)
             o.close();
@@ -171,6 +142,9 @@ public class SequenceDiagram extends Element {
     }
 
     @Override
+    /**
+     * Creates JSON representation of element's content.
+     */
     public JSONObject createJsonObject() {
         JSONObject object = new JSONObject();
         object.put("_class", "SequenceDiagram");

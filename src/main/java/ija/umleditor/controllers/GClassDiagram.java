@@ -337,7 +337,6 @@ public class GClassDiagram {
                         .findFirst().orElse(null);
                 if (gSrc == null || gDst == null)
                     continue;
-                // TODO: add relation model
                 GRelation gRelation = new GRelation(gSrc, gDst, canvas, relation);
                 gRelationsList.add(gRelation);
             }

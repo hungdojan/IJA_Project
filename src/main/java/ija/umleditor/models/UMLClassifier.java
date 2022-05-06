@@ -25,18 +25,34 @@ public class UMLClassifier extends Element implements ISubject {
     protected double x;
     protected double y;
 
+    /**
+     * Returns element's x position.
+     * @return Element's x position.
+     */
     public double getX() {
         return x;
     }
 
+    /**
+     * Returns element's y position.
+     * @return Element's y position.
+     */
     public double getY() {
         return y;
     }
 
+    /**
+     * Update's element's x position.
+     * @param x Element's new x position.
+     */
     public void setX(double x) {
         this.x = x;
     }
 
+    /**
+     * Update's element's y position.
+     * @param y Element's new y position.
+     */
     public void setY(double y) {
         this.y = y;
     }
@@ -71,6 +87,10 @@ public class UMLClassifier extends Element implements ISubject {
         return isUserDefined;
     }
 
+    /**
+     * Returns observers.
+     * @return Set of instances of IObserver
+     */
     public Set<IObserver> getObservers() {
         return observers;
     }
@@ -101,6 +121,9 @@ public class UMLClassifier extends Element implements ISubject {
         }
     }
 
+    /**
+     * Class destructor.
+     */
     public void close() {
         notify("DELETE");
     }

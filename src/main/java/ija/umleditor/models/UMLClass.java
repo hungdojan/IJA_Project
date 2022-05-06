@@ -237,45 +237,11 @@ public class UMLClass extends UMLClassifier {
     }
 
     /**
-     * Returns attribute from a given position.
-     * @param pos Asked position
-     * @return Found attribute; null if position out of range
+     * Updates attribute's name.
+     * @param attr Instance of the attribute.
+     * @param newName New attribute's name.
+     * @return Whether the operation was successful.
      */
-    public UMLAttribute getAttributeAtPosition(int pos) {
-        if (pos >= attributes.size())
-            return null;
-        return attributes.get(pos);
-    }
-
-    /**
-     * Get attributes position in the class.
-     * @param attr Instance of asked attribute
-     * @return Index position of the attribute; -1 if not found in the class
-     */
-    public int getAttributePosition(UMLAttribute attr) {
-        return attributes.indexOf(attr);
-    }
-
-    /**
-     * Move attribute of a given name to the given position.
-     * Method terminates when position is out of range or attribute was not found.
-     * @param name Attribute' name
-     * @param pos Attribute's new position
-     * @return true if method ended successfully; false otherwise
-     */
-    public boolean moveAttributeToPosition(String name, int pos) {
-        UMLAttribute attr = getAttribute(name);
-        int index = attributes.indexOf(attr);
-        if (pos < 0 || pos >= attributes.size() || index < 0)
-            return false;
-
-        // moving process
-        attributes.remove(index);
-        attributes.add(pos, attr);
-
-        return true;
-    }
-
     public boolean updateAttributeName(UMLAttribute attr, String newName) {
         // given attribute exists in the class
         if (!attributes.contains(attr))
@@ -289,6 +255,12 @@ public class UMLClass extends UMLClassifier {
         return true;
     }
 
+    /**
+     * Updates attribute's name.
+     * @param oldName Attribute's old name.
+     * @param newName New attribute's name.
+     * @return Whether the operation was successful.
+     */
     public boolean updateAttributeName(String oldName, String newName) {
         // given attribute exists in the class
         UMLAttribute oldAttr = getAttribute(oldName);

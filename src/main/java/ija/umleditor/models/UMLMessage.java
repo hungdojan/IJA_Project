@@ -129,6 +129,9 @@ public class UMLMessage extends Element implements IObserver {
             this.message.attach(this);
     }
 
+    /**
+     * Class destructor.
+     */
     public void close() {
         if (sender != SequenceDiagram.undefObject) {
             sender.detach(this);
@@ -162,6 +165,7 @@ public class UMLMessage extends Element implements IObserver {
         object.put("receiver", receiver.getName());
         object.put("name", nameProperty.getValue());
         object.put("message", message.getName());
+        object.put("messageType", messageType.toString());
         return object;
     }
 }

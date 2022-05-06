@@ -370,6 +370,9 @@ public class RightMenu {
                 baseElement.getModel().removeRelationWithClass(relationClass);
                 baseElement.getOwner().removeRelation(baseElement.getOwner().getRelation(baseElement.getModel(), relationClass));
                 relationsVBox.getChildren().remove(relationGrid);
+                for (var sd : baseElement.getOwner().getgSequenceDiagramList()) {
+                    sd.update("operation");
+                }
             });
 
             Label typeLabel = new Label("Type:");
@@ -389,6 +392,9 @@ public class RightMenu {
                     public void undo() {
                         item.setRelationType(currentType);
                         gRelation.updateColor();
+                        for (var sd : baseElement.getOwner().getgSequenceDiagramList()) {
+                            sd.update("operation");
+                        }
                     }
 
                     @Override
@@ -400,6 +406,9 @@ public class RightMenu {
                     public void execute() {
                         item.setRelationType(newType);
                         gRelation.updateColor();
+                        for (var sd : baseElement.getOwner().getgSequenceDiagramList()) {
+                            sd.update("operation");
+                        }
                     }
                 });
             });
@@ -419,6 +428,9 @@ public class RightMenu {
                             directionLabel.setText("Source:");
                         }
                         gRelation.swapDirection();
+                        for (var sd : baseElement.getOwner().getgSequenceDiagramList()) {
+                            sd.update("operation");
+                        }
                     }
 
                     @Override
@@ -434,6 +446,9 @@ public class RightMenu {
                             directionLabel.setText("Source:");
                         }
                         gRelation.swapDirection();
+                        for (var sd : baseElement.getOwner().getgSequenceDiagramList()) {
+                            sd.update("operation");
+                        }
                     }
                 });
             });
@@ -497,6 +512,9 @@ public class RightMenu {
                     ).setRelationType(RelationType.valueOf(typesCB.getValue()));
                     gRelation.updateColor();
                 }
+                for (var sd : baseElement.getOwner().getgSequenceDiagramList()) {
+                    sd.update("operation");
+                }
             });
 
             relationGrid.add(destLabel, 0, 0);
@@ -531,7 +549,9 @@ public class RightMenu {
                 baseElement.getModel().removeRelationWithClass(relationClass);
                 baseElement.getOwner().removeRelation(baseElement.getOwner().getRelation(baseElement.getModel(), relationClass));
                 relationsVBox.getChildren().remove(relationGrid);
-                // TODO: remove gRelation from the canvas
+                for (var sd : baseElement.getOwner().getgSequenceDiagramList()) {
+                    sd.update("operation");
+                }
             });
 
             relationGrid.setMaxWidth(Double.MAX_VALUE);
@@ -575,8 +595,8 @@ public class RightMenu {
                 sep.setPadding(new Insets(5, 0, 5, 0));
 
                 TitledPane listOfAttributesPane = createAttributeTitledPane((UMLOperation) item);
-                HBox editBox = createAttributeHBox(item, listOfAttributesPane, true);
-                operationsBox.getChildren().addAll(editBox, listOfAttributesPane);
+                HBox editBox = createAttributeHBox(item, listOfAttributesPane);
+                operationsBox.getChildren().addAll(editBox, listOfAttributesPane, sep);
             } else {
                 HBox editBox = createAttributeHBox(item, null);
                 attributesBox.getChildren().add(editBox);
@@ -730,6 +750,13 @@ public class RightMenu {
             stereotypeField.setDisable(true);
         }
         baseElement.getModel().getAbstractProperty().bindBidirectional(abstractCheck.selectedProperty());
+        abstractCheck.setOnAction(ev -> {
+            stereotypeField.setDisable(!stereotypeField.isDisabled());
+            for (var sd : baseElement.getOwner().getgSequenceDiagramList()) {
+                sd.update("operation");
+                sd.update("class");
+            }
+        });
 
 
         // name label
