@@ -1,9 +1,6 @@
 package ija.umleditor.controllers;
 
-import ija.umleditor.models.UMLAttribute;
-import ija.umleditor.models.UMLClass;
-import ija.umleditor.models.UMLMessage;
-import ija.umleditor.models.UMLOperation;
+import ija.umleditor.models.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -14,10 +11,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
+import java.util.EnumSet;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static ija.umleditor.controllers.GSequenceDiagram.messageType;
 
 public class GMessageSettings {
     private final GSequenceDiagram owner;
@@ -54,6 +51,7 @@ public class GMessageSettings {
         msgTF.setText(model.getName());
         operationCB.setValue(model.getMessage().getName());
         operationCB.setDisable(false);
+        msgTypeCB.setValue(model.getMessageType().toString());
         owner.addGMessage(gModel);
     }
 
@@ -74,10 +72,17 @@ public class GMessageSettings {
         // create combo boxes for options
         srcObjCB = new ComboBox<>(observableObjects);
         destObjCB = new ComboBox<>(observableObjects);
-        msgTypeCB = new ComboBox<>(messageType);
+        msgTypeCB = new ComboBox<>(
+                FXCollections.observableArrayList(EnumSet.allOf(MessageType.class).stream()
+                                .map(MessageType::name).collect(Collectors.toList())
+                )
+        );
         operationCB = new ComboBox<>();
         operationCB.setDisable(true);
         msgTypeCB.setMinWidth(80);
+//        if (gModel != null && gModel.getModel() != null) {
+//            msgTypeCB.setValue(gModel.getModel().getMessageType().toString());
+//        }
 //            messageBox.getChildren().addAll(srcObj, destObj, msgCB, deleteMsgButton);
 
         // create text field to write the text of the message
@@ -139,9 +144,14 @@ public class GMessageSettings {
         });
         operationCB.setOnAction(ev -> {
             // TODO:
+            gModel.getModel().setMessage((UMLOperation) gModel.getDstGObject().getModel().getClassOfInstance().getAttribute(operationCB.getValue()));
         });
         msgTypeCB.setOnAction(ev -> {
             // TODO:
+            if (gModel != null) {
+                gModel.getModel().setMessageType(MessageType.valueOf(msgTypeCB.getValue()));
+                gModel.update("line");
+            }
         });
         msgTF.setOnAction(ev -> {
             // TODO:
@@ -155,6 +165,8 @@ public class GMessageSettings {
                     return;
                 UMLAttribute operation = dstObj.getModel().getClassOfInstance().getAttribute(operationCB.getValue());
                 var messageInstance = new UMLMessage(msgTF.getText(), srcObj.getModel(), dstObj.getModel(), (UMLOperation) operation);
+                if (!msgTypeCB.getValue().isBlank())
+                    messageInstance.setMessageType(MessageType.valueOf(msgTypeCB.getValue()));
                 gModel = new GMessage(owner.getCanvas(), srcObj, dstObj, owner.countMsg++, messageInstance);
                 owner.addGMessage(gModel);
                 owner.getModel().addMessage(messageInstance);
@@ -167,6 +179,8 @@ public class GMessageSettings {
     }
     public void update(String msg) {
         if (Objects.equals(msg, "operation")) {
+            if (gModel == null)
+                return;
             var receiver = gModel.getModel().getReceiver();
             if (receiver == null)
                 return;

@@ -433,10 +433,12 @@ public class RightMenu {
                 var gRelation = baseElement.getOwner().getRelation(
                         baseElement.getModel(),
                         baseElement.getOwner().getModel().getClass(destField.getText()));
-                baseElement.getModel().getRelation(
-                        baseElement.getOwner().getModel().getClass(destField.getText())
-                ).setRelationType(RelationType.valueOf(typesCB.getValue()));
-                gRelation.updateColor();
+                if (gRelation != null) {
+                    baseElement.getModel().getRelation(
+                            baseElement.getOwner().getModel().getClass(destField.getText())
+                    ).setRelationType(RelationType.valueOf(typesCB.getValue()));
+                    gRelation.updateColor();
+                }
             });
 
             relationGrid.add(destLabel, 0, 0);

@@ -61,6 +61,10 @@ public class GClassDiagram {
         }
     }
 
+    public List<GSequenceDiagram> getgSequenceDiagramList() {
+        return gSequenceDiagramList;
+    }
+
     /**
      * Extracts images from assets folder and creates clickable panes with them.
      * @param root Root layout

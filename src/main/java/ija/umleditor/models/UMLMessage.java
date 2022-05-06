@@ -17,6 +17,8 @@ public class UMLMessage extends Element implements IObserver {
     }
 
     public void setMessageType(MessageType messageType) {
+        if (messageType == null)
+            return;
         this.messageType = messageType;
     }
 
@@ -37,6 +39,7 @@ public class UMLMessage extends Element implements IObserver {
         setSender(sender);
         setReceiver(receiver);
         setMessage(message);
+        messageType = MessageType.SYNC;
         // this.sender = sender;
         // this.receiver = receiver;
         // TODO:

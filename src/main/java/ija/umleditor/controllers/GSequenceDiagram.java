@@ -57,8 +57,8 @@ public class GSequenceDiagram {
         }
     }
 
-    public Tab getBaseTab() {
-        return baseTab;
+    public GClassDiagram getOwner() {
+        return owner;
     }
 
     public void addGMessage(GMessage gMessage) {
@@ -226,6 +226,9 @@ public class GSequenceDiagram {
             if (selectedObject != null) {
                 var objType = owner.getModel().getClass(typeCB.getValue());
                 selectedObject.getModel().setClassOfInstance(objType);
+                for (var i : gMessageSettingsList) {
+                    i.update("operation");
+                }
             }
         });
 

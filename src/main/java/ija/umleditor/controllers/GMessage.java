@@ -39,6 +39,7 @@ public class GMessage {
     private final double offsetYPos = 50;
     private final StringProperty labelText = new SimpleStringProperty();
     private boolean pointLeft;
+    private Pane root;
 
     public UMLMessage getModel() {
         return model;
@@ -70,6 +71,7 @@ public class GMessage {
         srcGObject = Objects.requireNonNull(obj1);
         dstGObject = Objects.requireNonNull(obj2);
         this.model  = Objects.requireNonNull(model);
+        this.root = Objects.requireNonNull(root);
         String text = model.getName();
 
         // create line
@@ -242,5 +244,62 @@ public class GMessage {
         msgLine.setLayoutY(msgLine.getLayoutY() + offsetDown * offsetYPos);
         nameLabel.setLayoutY(nameLabel.getLayoutY() + offsetDown * offsetYPos);
         arrow.setLayoutY(arrow.getLayoutY() + offsetDown * offsetYPos);
+    }
+
+    public void update(String msg) {
+        if (Objects.equals(msg, "line")) {
+            root.getChildren().remove(arrow);
+            if (srcGObject == dstGObject) {
+                switch (model.getMessageType()){
+                    case ASYNC:
+                        arrow.setFill(Color.TRANSPARENT);
+                        arrow.setStrokeWidth(2);
+                        arrow.getStrokeDashArray().addAll(20d);
+                        arrow.setStroke(Color.BLACK);
+                        line1.getStrokeDashArray().clear();
+                        line2.getStrokeDashArray().clear();
+                        line3.getStrokeDashArray().clear();
+                        break;
+                    case SYNC:
+                        arrow.setFill(Color.BLACK);
+                        line1.getStrokeDashArray().clear();
+                        line2.getStrokeDashArray().clear();
+                        line3.getStrokeDashArray().clear();
+                        break;
+                    case RETURN:
+                        arrow.setFill(Color.TRANSPARENT);
+                        arrow.setStrokeWidth(2);
+                        arrow.getStrokeDashArray().addAll(20d);
+                        arrow.setStroke(Color.BLACK);
+                        line1.getStrokeDashArray().addAll(9d, 9d);
+                        line2.getStrokeDashArray().addAll(9d, 9d);
+                        line3.getStrokeDashArray().addAll(9d, 9d);
+                        break;
+                }
+            }
+            else {
+                switch (model.getMessageType()) {
+                    case ASYNC:
+                        arrow.setFill(Color.TRANSPARENT);
+                        arrow.setStrokeWidth(2);
+                        arrow.getStrokeDashArray().addAll(20d);
+                        arrow.setStroke(Color.BLACK);
+                        msgLine.getStrokeDashArray().clear();
+                        break;
+                    case SYNC:
+                        arrow.setFill(Color.BLACK);
+                        msgLine.getStrokeDashArray().clear();
+                        break;
+                    case RETURN:
+                        arrow.setFill(Color.TRANSPARENT);
+                        arrow.setStrokeWidth(2);
+                        arrow.getStrokeDashArray().addAll(20d);
+                        arrow.setStroke(Color.BLACK);
+                        msgLine.getStrokeDashArray().addAll(10d, 10d);
+                        break;
+                }
+            }
+            root.getChildren().add(arrow);
+        }
     }
 }
