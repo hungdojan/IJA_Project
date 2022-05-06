@@ -310,7 +310,11 @@ public class RightMenu {
                 warning.setTitle("Blank space");
                 warning.setContentText("Text field cannot be empty");
                 warning.show();
+                return;
             }
+            UMLClass modelClass = baseElement.getModel();
+
+            if (!modelClass.updateAttributeName(item.getName(), textField.getText())) {}
         });
         return editBox;
     }
