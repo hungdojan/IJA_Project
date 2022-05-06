@@ -1,3 +1,16 @@
+/**
+ * @brief Declaration of UMLObject class.
+ * UMLClass represents abstract structure of user-defined object in the sequence diagram.
+ * It is made from text label resembling rectangle which states type and name of the object and
+ * dashed line that represents lifeline of the object.
+ *
+ * This source code serves as submission for semester assignment of class IJA at FIT, BUT 2021/22.
+ *
+ * @file UMLObject.java
+ * @date 03/05/2022
+ * @authors Hung Do      (xdohun00)
+ *          Petr Kolarik (xkolar79)
+ */
 package ija.umleditor.models;
 
 import javafx.beans.binding.Bindings;
@@ -7,7 +20,9 @@ import org.json.JSONObject;
 
 import java.util.*;
 
-// TODO: implement ISubject
+/**
+ * Declaration of UMLObject class.
+ */
 public class UMLObject extends Element implements IObserver, ISubject {
 
     private double x = 0;
@@ -15,14 +30,26 @@ public class UMLObject extends Element implements IObserver, ISubject {
     private UMLClass classOfInstance;
     private final StringProperty toStringProperty = new SimpleStringProperty();
 
+    /**
+     * Returns instance of StringProperty.
+     * @return Instance of StringProperty
+     */
     public StringProperty getToStringProperty() {
         return toStringProperty;
     }
 
+    /**
+     * Gets the X coordinate of object.
+     * @return X coordinate of type double
+     */
     public double getX() {
         return x;
     }
 
+    /**
+     * Sets X coordinate of object.
+     * @param x number to set as X coordinate
+     */
     public void setX(double x) {
         this.x = x;
     }
@@ -43,13 +70,13 @@ public class UMLObject extends Element implements IObserver, ISubject {
             classOfInstance = SequenceDiagram.undefClass;
         setClassOfInstance(classOfInstance);
         observers = new HashSet<>();
-        // this.classOfInstance = classOfInstance;
         this.classOfInstance.attach(this);
         updateName();
-        // toStringProperty.bind(Bindings.concat(this.classOfInstance.nameProperty, " : ", nameProperty));
-//        toStringProperty.set(classOfInstance.getName() + " : " + name);
     }
 
+    /**
+     * Updates name and its bindings.
+     */
     public void updateName() {
         toStringProperty.bind(Bindings.concat(classOfInstance.nameProperty, " : ", nameProperty));
     }
@@ -62,6 +89,11 @@ public class UMLObject extends Element implements IObserver, ISubject {
         return classOfInstance;
     }
 
+    /**
+     * Updates object's referenced class,
+     * when null is passed, special undef class is set to prevent null pointer exception
+     * @param newClass Instance of UMLClass
+     */
     public void setClassOfInstance(UMLClass newClass) {
         if (classOfInstance != null && classOfInstance != SequenceDiagram.undefClass)
             classOfInstance.detach(this);
@@ -82,15 +114,8 @@ public class UMLObject extends Element implements IObserver, ISubject {
     }
 
     /**
-     * Checks if object contains given operation
-     * @param operation Asked operation
-     * @return true if object contains given operation
+     * Class destructor.
      */
-    public boolean containsOperation(UMLOperation operation) {
-        // return classOfInstance.lofOperations.contains(operation);
-        return false;
-    }
-
     public void close() {
         if (classOfInstance != SequenceDiagram.undefClass)
             classOfInstance.detach(this);

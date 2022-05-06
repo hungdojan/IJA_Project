@@ -15,8 +15,11 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import org.json.JSONObject;
 
+/**
+ * Declaration of Element class.
+ */
 public abstract class Element {
-    protected StringProperty nameProperty = new SimpleStringProperty();
+    protected StringProperty nameProperty;
 
     /**
      * Class Element constructor
@@ -26,6 +29,10 @@ public abstract class Element {
         nameProperty = new SimpleStringProperty(name);
     }
 
+    /**
+     * Returns instance of StringProperty
+     * @return Instance of StringProperty
+     */
     public StringProperty getNameProperty() {
         return nameProperty;
     }

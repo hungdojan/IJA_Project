@@ -28,10 +28,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * Graphical representation of sequence diagram.
+ */
 public class GSequenceDiagram {
 
-//    private final Pane basePane;
-    private final HBox baseHBox;
     private final AnchorPane rightMenu;
     private final List<GObject> gObjectList = new ArrayList<>();
     private final List<GMessage> gMessageList = new ArrayList<>();
@@ -43,7 +44,6 @@ public class GSequenceDiagram {
     private GObject selectedObject;
     private Pane canvas = null;
     private GObject object = null;
-    private GMessage msgLine = null;
     private GMessageSettings newMessage = null;
     private final Tab baseTab;
 
@@ -51,25 +51,34 @@ public class GSequenceDiagram {
     private int countObj = 0;
     public int countMsg = 0;
 
+    /**
+     * Updates direction of arrows.
+     */
     public void updateArrow() {
         for (var gm : gMessageList) {
             gm.updateArrowHead();
         }
     }
 
-    public GClassDiagram getOwner() {
-        return owner;
-    }
-
+    /**
+     * Adds message to the list of all messages.
+     * @param gMessage Message to be added
+     */
     public void addGMessage(GMessage gMessage) {
         if (gMessage == null)
             return;
         gMessageList.add(gMessage);
     }
 
+    /**
+     * Adds instance of GMessage into the canvas.
+     * @param gMessage Message to be added
+     * @param position Position to put the message at
+     */
     public void addGMessage(GMessage gMessage, int position) {
         if (gMessage == null)
             return;
+        // shift of messages present on canvas
         for (int i = position; i < gMessageList.size(); i++) {
             gMessageList.get(i).moveContent(1);
         }
@@ -77,7 +86,12 @@ public class GSequenceDiagram {
         gMessageList.add(gMessage);
     }
 
-    public void removeGMessage(GMessage gMessage) {
+    /**
+     * Removes instance of GMessage from the canvas.
+     * @param gMessage Message to be removed
+     * @return Position of removed message
+     */
+    public int removeGMessage(GMessage gMessage) {
         if (gMessage == null)
             return;
         int position = gMessageList.indexOf(gMessage);
@@ -85,31 +99,48 @@ public class GSequenceDiagram {
             return;
         gMessage.removeFromCanvas(canvas);
         gMessageList.remove(gMessage);
+        // shift of messages present on canvas
         for (; position < gMessageList.size(); position++)
             gMessageList.get(position).moveContent(-1);
         countMsg--;
     }
 
-    public void removeGMessageSettings(GMessageSettings gMessageSettings) {
-        gMessageSettingsList.remove(gMessageSettings);
-    }
-
+    /**
+     * Gets model.
+     * @return Instance of SequenceDiagram
+     */
     public SequenceDiagram getModel() {
         return model;
     }
 
+    /**
+     * Gets list of all objects that are currently on canvas.
+     * @return List of objects.
+     */
     public List<GObject> getgObjectList() {
         return gObjectList;
     }
 
+    /**
+     * Sets new message grid.
+     * @param newMessage Instance of GMessageSettings to be set.
+     */
     public void setNewMessage(GMessageSettings newMessage) {
         this.newMessage = newMessage;
     }
 
+    /**
+     * Gets new message.
+     * @return Instance of GMessageSettings
+     */
     public GMessageSettings getNewMessage() {
         return newMessage;
     }
 
+    /**
+     * Gets canvas.
+     * @return Instance of Pane.
+     */
     public Pane getCanvas() {
         return canvas;
     }
@@ -136,10 +167,13 @@ public class GSequenceDiagram {
                         selectedObject.getModel().close();
                         for (var m : gMessageList.stream().filter(x -> x.getSrcGObject() == selectedObject ||
                                 x.getDstGObject() == selectedObject).collect(Collectors.toList())) {
-                            // TODO: update gMessages (color??)
                             m.updateColor(true);
                         }
+                        model.removeObject(selectedObject.getModel());
+                        gObjectList.remove(selectedObject);
                         canvas.getChildren().remove(selectedObject.getBaseGroup());
+                        update("object");
+                        setSelectedObject(null);
                     } else if (ev.isControlDown() && ev.getCode() == KeyCode.Z) {
                         commandBuilder.undo();
                     } else if (ev.isControlDown() && ev.getCode() == KeyCode.Y) {
@@ -150,7 +184,7 @@ public class GSequenceDiagram {
         });
 
         // content pane
-        baseHBox = new HBox();
+        HBox baseHBox = new HBox();
 
         // create right menu
         rightMenu = new AnchorPane();
@@ -186,9 +220,7 @@ public class GSequenceDiagram {
     private ScrollPane createCanvas() {
         // create canvas
         ScrollPane drawable = new ScrollPane();
-        drawable.setOnMouseClicked(ev -> {
-            setSelectedObject(null);
-        });
+        drawable.setOnMouseClicked(ev -> setSelectedObject(null));
         drawable.setFitToWidth(true);
         drawable.setFitToHeight(true);
 
@@ -248,6 +280,7 @@ public class GSequenceDiagram {
         // add object button
         Button addObject = new Button("Add object");
         addObject.setMaxWidth(Double.MAX_VALUE);
+        addObject.setStyle("-fx-background-radius: 15px");
         addObject.setOnAction(e -> {
             var objectInstance = Templates.createObject();
             object = new GObject(canvas, objectInstance, countObj, this);
@@ -263,6 +296,7 @@ public class GSequenceDiagram {
         // create button for adding messages
         Button addMessage = new Button("Add message");
         addMessage.setMaxWidth(Double.MAX_VALUE);
+        addMessage.setStyle("-fx-background-radius: 15px");
         addMessage.setOnAction(e -> {
             // add new object
             if (newMessage == null) {
@@ -288,6 +322,7 @@ public class GSequenceDiagram {
         // button to remove class diagram instance
         Button deleteDiagram = new Button("Delete diagram");
         deleteDiagram.setMaxWidth(Double.MAX_VALUE);
+        deleteDiagram.setStyle("-fx-background-radius: 15px");
         deleteDiagram.setOnAction(ev -> rootTab.getTabs().remove(baseTab));
 
         // set margin between items in vbox
@@ -301,6 +336,10 @@ public class GSequenceDiagram {
         return menuVBox;
     }
 
+    /**
+     * Set an object as selected.
+     * @param object Instance of GObject.
+     */
     public void setSelectedObject(GObject object) {
         if (selectedObject != null) {
             selectedObject.selected(false);
@@ -309,7 +348,6 @@ public class GSequenceDiagram {
         TextField nameField = (TextField) ((VBox) rightMenu.getChildren().get(0)).getChildren().get(1);
         ComboBox<String> classCB = (ComboBox<String>) ((VBox) rightMenu.getChildren().get(0)).getChildren().get(3);
         if (selectedObject == null) {
-            // nameField.textProperty().unbind();
             nameField.setText("");
             classCB.setValue("");
             classCB.setDisable(true);
@@ -317,8 +355,6 @@ public class GSequenceDiagram {
             return;
         }
         selectedObject.selected(true);
-        // TODO: load data to right menu
-        // nameField.textProperty().bindBidirectional(selectedObject.getModel().getNameProperty());
         nameField.setText(selectedObject.getModel().getName());
         classCB.setValue(selectedObject.getModel().getClassOfInstance().getName());
         classCB.setDisable(false);
@@ -334,7 +370,6 @@ public class GSequenceDiagram {
             var clsNames = owner.getModel().getClasses().stream().map(UMLClass::getName).collect(Collectors.toList());
             observableClassNames.clear();
             observableClassNames.addAll(clsNames);
-            // update objects??
         } else if (Objects.equals(msg, "operation")) {
             // TODO: update operations
         } else if (Objects.equals(msg, "object")) {

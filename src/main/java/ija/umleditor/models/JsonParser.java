@@ -20,6 +20,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
+/**
+ * Declaration of JsonParser class.
+ */
 public class JsonParser {
     /**
      * Loads JSON file content into class diagram.
@@ -33,7 +36,7 @@ public class JsonParser {
         File file = new File(filePath);
         InputStream is = new FileInputStream(file);
         JSONObject object = new JSONObject(new JSONTokener(is));
-        if (!Objects.equals((String) object.get("_class"), "ClassDiagram")) {
+        if (!Objects.equals(object.get("_class"), "ClassDiagram")) {
             return null;
         }
         var classDiagram = new ClassDiagram((String) object.get("name"));
@@ -52,6 +55,11 @@ public class JsonParser {
         return classDiagram;
     }
 
+    /**
+     * Loads realtions from list of JSONRelations.
+     * @param cd Main class diagram.
+     * @param jsonRelations Json list of relations.
+     */
     private static void loadRelations(ClassDiagram cd, JSONArray jsonRelations) {
         for (var item : jsonRelations) {
             JSONObject jsonRelation = (JSONObject) item;
@@ -194,7 +202,7 @@ public class JsonParser {
             String name = (String) jsonClassElement.get("name");
             int x = (int) jsonClassElement.get("x");
             int y = (int) jsonClassElement.get("y");
-            UMLClassifier element = null;
+            UMLClassifier element;
             if (Objects.equals(jsonClassElement.get("_class"), "UMLClassifier")) {
                 element = ClassDiagram.createClassifier(name, false);
             } else {

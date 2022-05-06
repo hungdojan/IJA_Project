@@ -25,38 +25,44 @@ import javafx.scene.transform.Rotate;
 
 import java.util.Objects;
 
+/**
+ * Graphical representation of message in sequence diagram.
+ */
 public class GMessage {
     private final UMLMessage model;
-    private GObject srcGObject;
-    private GObject dstGObject;
+    private final GObject srcGObject;
+    private final GObject dstGObject;
     private final Polygon arrow;
     private final Line msgLine;
     private Line line1;
     private Line line2;
     private Line line3;
-    private Label nameLabel = null;
-    private final double startYPos = 100;
+    private final Label nameLabel;
     private final double offsetYPos = 50;
     private final StringProperty labelText = new SimpleStringProperty();
     private boolean pointLeft;
-    private Pane root;
+    private final Pane root;
 
+    /**
+     * Gets model.
+     * @return Instance of UMLMessage
+     */
     public UMLMessage getModel() {
         return model;
     }
 
-    public void setSrcGObject(GObject srcGObject) {
-        this.srcGObject = srcGObject;
-    }
-
-    public void setDstGObject(GObject dstGObject) {
-        this.dstGObject = dstGObject;
-    }
-
+    /**
+     * Gets destination object.
+     * @return Destination object, instance of GObject.
+     */
     public GObject getDstGObject() {
         return dstGObject;
     }
 
+    /**
+     * Gets source object.
+     * @return Source object, instance of GObject.
+     */
     public GObject getSrcGObject() {
         return srcGObject;
     }
@@ -66,13 +72,14 @@ public class GMessage {
      * @param root Canvas to draw message on
      * @param obj1 Starting object
      * @param obj2 Ending object
+     * @param count Number of messages on the canvas.
+     * @param model Instance of UMLMessage.
      */
     public GMessage(Pane root, GObject obj1, GObject obj2, double count, UMLMessage model) {
         srcGObject = Objects.requireNonNull(obj1);
         dstGObject = Objects.requireNonNull(obj2);
         this.model  = Objects.requireNonNull(model);
         this.root = Objects.requireNonNull(root);
-        String text = model.getName();
 
         // create line
         msgLine = new Line();
@@ -81,6 +88,7 @@ public class GMessage {
         arrow = new Polygon();
         arrow.getPoints().addAll(0.0, 0.0, 20.0, 8.0, 8.0, 20.0);
 
+        double startYPos = 100;
         if (srcGObject == dstGObject) {
 
             // create three lines and bind them together
@@ -202,7 +210,6 @@ public class GMessage {
             labelText.unbind();
             labelText.setValue(model.getName());
         } else if (!model.getMessage().getName().isBlank()) {
-            // labelText.setValue(model.getMessage().getName());
             labelText.bind(model.getMessage().getNameProperty());
         } else {
             labelText.unbind();
@@ -225,6 +232,10 @@ public class GMessage {
         }
     }
 
+    /**
+     * Removes message from canvas.
+     * @param canvas Pane to be removed from.
+     */
     public void removeFromCanvas(Pane canvas) {
         if (srcGObject == dstGObject) {
             canvas.getChildren().removeAll(line1, line2, line3, arrow, nameLabel);
@@ -254,6 +265,10 @@ public class GMessage {
         arrow.setLayoutY(arrow.getLayoutY() + offsetDown * offsetYPos);
     }
 
+    /**
+     * Updates appearance of message depending on selected type.
+     * @param msg Identification message
+     */
     public void update(String msg) {
         if (Objects.equals(msg, "line")) {
             root.getChildren().remove(arrow);
@@ -311,11 +326,39 @@ public class GMessage {
         }
     }
 
+    /**
+     * Turns message red in case of adn error.
+     * @param isError Error occurred.
+     */
     public void updateColor(boolean isError) {
         if (isError) {
-            // TODO: red
+            if (srcGObject == dstGObject) {
+                line1.setStroke(Color.RED);
+                line2.setStroke(Color.RED);
+                line3.setStroke(Color.RED);
+            }
+            if (Objects.equals(model.getMessageType().toString(), "SYNC")) {
+                arrow.setFill(Color.RED);
+                msgLine.setStroke(Color.RED);
+            }
+            else {
+                msgLine.setStroke(Color.RED);
+                arrow.setStroke(Color.RED);
+            }
         } else {
-            // TODO: black
+            if (srcGObject == dstGObject) {
+                line1.setStroke(Color.BLACK);
+                line2.setStroke(Color.BLACK);
+                line3.setStroke(Color.BLACK);
+            }
+            if (Objects.equals(model.getMessageType().toString(), "SYNC")) {
+                arrow.setFill(Color.BLACK);
+                msgLine.setStroke(Color.BLACK);
+            }
+            else {
+                msgLine.setStroke(Color.BLACK);
+                arrow.setStroke(Color.BLACK);
+            }
         }
     }
 }

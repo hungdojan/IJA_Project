@@ -1,3 +1,15 @@
+/**
+ * @brief Declaration of UMLAttribute class.
+ * UMLAttribute represents abstract structure of attributes in class element.
+ * It specifies its visibility, type, name and parent.
+ *
+ * This source code serves as submission for semester assignment of class IJA at FIT, BUT 2021/22.
+ *
+ * @file UMLAttribute.java
+ * @date 06/05/2022
+ * @authors Hung Do      (xdohun00)
+ *          Petr Kolarik (xkolar79)
+ */
 package ija.umleditor.models;
 
 import javafx.beans.property.SimpleStringProperty;
@@ -6,6 +18,9 @@ import org.json.JSONObject;
 
 import java.util.Objects;
 
+/**
+ * Declaration of UMLAttribute class.
+ */
 public class UMLAttribute extends Element implements IObserver {
 
     protected Character visibility;
@@ -39,10 +54,17 @@ public class UMLAttribute extends Element implements IObserver {
         toStringProperty.set(visibility + type.getName() + " " + name);
     }
 
+    /**
+     * Gets string property of attribute to string value.
+     * @return Instance of StringProperty
+     */
     public StringProperty getToStringProperty() {
         return toStringProperty;
     }
 
+    /**
+     * Updates name of all bindings.
+     */
     protected void updateName() {
         toStringProperty.setValue(visibility + type.getName() + " " + getName());
         if (parent != null)
@@ -126,9 +148,6 @@ public class UMLAttribute extends Element implements IObserver {
 
     @Override
     public String toString() {
-        String ret = "";
-        if (visibility != 0)
-            ret += visibility;
         return type.getName() + " " + getName();
     }
 }

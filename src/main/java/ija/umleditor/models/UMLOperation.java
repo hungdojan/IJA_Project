@@ -1,3 +1,14 @@
+/**
+ * @brief Declaration of UMLOperation class.
+ * UMLOperation represents abstract structure of operations in class element.
+ *
+ * This source code serves as submission for semester assignment of class IJA at FIT, BUT 2021/22.
+ *
+ * @file UMOperation.java
+ * @date 06/05/2022
+ * @authors Hung Do      (xdohun00)
+ *          Petr Kolarik (xkolar79)
+ */
 package ija.umleditor.models;
 
 import org.json.JSONArray;
@@ -6,12 +17,19 @@ import org.json.JSONObject;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Declaration of UMLOperation class.
+ */
 public class UMLOperation extends UMLAttribute implements ISubject {
 
     private final List<IObserver> observers;
     private final List<UMLAttribute> operationParameters;
     private static int parameterCounter = 1;
 
+    /**
+     * Returns number of parameters of operation
+     * @return Number of parameters
+     */
     public static int getParameterCounter() {
         return parameterCounter++;
     }
@@ -50,8 +68,7 @@ public class UMLOperation extends UMLAttribute implements ISubject {
 
     /**
      * Returns collection of parameters of this operation.
-     * TODO: fix
-     * @return Immutable collection of parameters
+     * @return Mutable collection of parameters
      */
     public List<UMLAttribute> getOperationParameters() {
         return operationParameters;
@@ -81,30 +98,6 @@ public class UMLOperation extends UMLAttribute implements ISubject {
         return false;
     }
 
-    // TODO: change position
-
-    /**
-     * Adds new parameter to the operation.
-     * When parameter with identical name already exists in the operation OLD INSTANCE IS REPLACED by new one.
-     * @param parameter Instance of parameter
-     * @return
-     */
-    public UMLAttribute addOrReplaceParameter(UMLAttribute parameter) {
-        // search for parameter with similar name
-        UMLAttribute attribute = operationParameters.stream()
-                .filter(x -> Objects.equals(x.getName(), parameter.getName()))
-                .findFirst().orElse(null);
-
-        // remove visibility of parameter
-        parameter.visibility = 0;
-        operationParameters.add(parameter);
-        if (attribute != null) {
-            operationParameters.remove(parameter);
-        }
-        updateName();
-        return attribute;
-    }
-
     /**
      * Returns parameter with given name.
      * @param name Parameter's name
@@ -117,23 +110,18 @@ public class UMLOperation extends UMLAttribute implements ISubject {
     }
 
     /**
-     * Removes parameter with given name.
-     * @param name Parameter's name
-     * @return true if successfully removed; false otherwise
+     * Updates name
      */
-    public boolean removeParameter(String name) {
-        UMLAttribute parameter = operationParameters.stream()
-                .filter(x -> Objects.equals(x.getName(), name))
-                .findFirst().orElse(null);
-        boolean result = operationParameters.remove(parameter);
-        updateName();
-        return result;
-    }
-
     public void update() {
         updateName();
     }
 
+    /**
+     * Updates name of parameter
+     * @param oldName Name of parameter to be updated
+     * @param newName New name for the old parameter
+     * @return If name was successfully updated
+     */
     public boolean updateParameter(String oldName, String newName) {
         UMLAttribute oldParam = getParameterByName(oldName);
         UMLAttribute newParam = getParameterByName(newName);
@@ -155,14 +143,6 @@ public class UMLOperation extends UMLAttribute implements ISubject {
         return result;
     }
 
-    /**
-     * Clear operation from parameters.
-     */
-    public void clearParameters() {
-        operationParameters.clear();
-        updateName();
-    }
-
     @Override
     public void attach(IObserver observer) {
         observers.add(observer);
@@ -177,9 +157,6 @@ public class UMLOperation extends UMLAttribute implements ISubject {
     public void notify(String msg) {
         for (var o : observers)
             o.update(msg);
-    }
-    public List<IObserver> getObservers() {
-        return observers;
     }
 
     @Override

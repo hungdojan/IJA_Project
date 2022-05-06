@@ -1,3 +1,13 @@
+/**
+ * @brief Definition of UMLClassifier class.
+ *
+ * This source code serves as submission for semester assignment of class IJA at FIT, BUT 2021/22.
+ *
+ * @file UMLClassifier.java
+ * @date 03/05/2022
+ * @authors Hung Do      (xdohun00)
+ *          Petr Kolarik (xkolar79)
+ */
 package ija.umleditor.models;
 
 import org.json.JSONObject;
@@ -6,6 +16,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Declaration of UMLClassifier class.
+ */
 public class UMLClassifier extends Element implements ISubject {
     private final boolean isUserDefined;
     private final Set<IObserver> observers;

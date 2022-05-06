@@ -28,6 +28,9 @@ import javafx.scene.shape.Rectangle;
 import java.io.FileNotFoundException;
 import java.util.*;
 
+/**
+ * Graphical representation of class diagram.
+ */
 public class GClassDiagram {
     private final ClassDiagram model;
     private GClassElement selectedElement = null;
@@ -55,12 +58,20 @@ public class GClassDiagram {
         return model;
     }
 
+    /**
+     * Updates all sequence diagrams with a message.
+     * @param msg The message that diagrams will be updated with.
+     */
     public void notify(String msg) {
         for (var sd : gSequenceDiagramList) {
             sd.update(msg);
         }
     }
 
+    /**
+     * Gets list of sequence diagrams.
+     * @return List of sequence diagrams.
+     */
     public List<GSequenceDiagram> getgSequenceDiagramList() {
         return gSequenceDiagramList;
     }
@@ -68,9 +79,8 @@ public class GClassDiagram {
     /**
      * Extracts images from assets folder and creates clickable panes with them.
      * @param root Root layout
-     * @throws FileNotFoundException Unable to get assets
      */
-    private void addResources(VBox root) throws FileNotFoundException {
+    private void addResources(VBox root) {
         List<String> lofAssets = new ArrayList<>(
                 Arrays.asList("/class.png", "/interface.png", "/object.png")
         );
@@ -126,9 +136,8 @@ public class GClassDiagram {
      * Creates left menu that contains list of objects that can be added to diagram.
      * @param leftPane Root pane
      * @param rootTab  Root tab pane
-     * @throws FileNotFoundException Unable to get assets
      */
-    private void createLeftMenu(AnchorPane leftPane, TabPane rootTab) throws FileNotFoundException {
+    private void createLeftMenu(AnchorPane leftPane, TabPane rootTab) {
         VBox objectPane = new VBox();
         addResources(objectPane);
 
@@ -254,14 +263,10 @@ public class GClassDiagram {
         canvas.setOnMousePressed(ev -> {
             posX = ev.getX();
             posY = ev.getY();
-            for (var gClassElement : gClassElementList) {
-                gClassElement.storeRelativePosition();
-            }
         });
         canvas.setOnMouseDragged(ev -> {
             if (ev.getButton() == MouseButton.SECONDARY) {
                 for (var gClassElement : gClassElementList) {
-                    // var point = gClassElement.getRelativePosition();
                     gClassElement.getBaseLayout().setTranslateX(gClassElement.getModel().getX() - posX + ev.getX());
                     gClassElement.getBaseLayout().setTranslateY(gClassElement.getModel().getY() - posY + ev.getY());
                 }
@@ -381,6 +386,11 @@ public class GClassDiagram {
         }
     }
 
+    /**
+     * Gets element from the list of all elements.
+     * @param classElement The element to be found.
+     * @return Instance of GClassElement
+     */
     public GClassElement getClassElement(UMLClass classElement) {
         return gClassElementList.stream()
                 .filter(x -> x.getModel() == classElement)

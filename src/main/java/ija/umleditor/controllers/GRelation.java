@@ -2,7 +2,7 @@
  * @brief Creates relation between two elements.
  * Relation is assembled from line and arrow.
  * Type of arrow depends on relation type.
- * Relation moves accordingly to elements it is binded to.
+ * Relation moves accordingly to elements it is bound to.
  *
  * This source code serves as submission for semester assignment of class IJA at FIT, BUT 2021/22.
  *
@@ -24,6 +24,9 @@ import javafx.scene.transform.Rotate;
 
 import java.util.Objects;
 
+/**
+ * Graphical representation of class relation.
+ */
 public class GRelation {
     private final UMLRelation model;
     private final GClassElement srcClass;
@@ -63,24 +66,11 @@ public class GRelation {
         srcClass = Objects.requireNonNull(e1);
         destClass = Objects.requireNonNull(e2);
         this.model = Objects.requireNonNull(model);
-        String type = model.getRelationType().toString();
 
         baseStructure = new Line();
         baseStructure.setStrokeWidth(3);
 
         updateColor();
-
-//
-//        if (Objects.equals(type, "Association")) {
-//        } else if (Objects.equals(type, "Aggregation")) {
-//        } else if (Objects.equals(type, "Composition")) {
-//        } else if (Objects.equals(type, "Generalization")) {
-//        } else {
-//            Alert alert = new Alert(Alert.AlertType.ERROR);
-//            alert.setTitle("Error");
-//            alert.setContentText("Type must be specified!");
-//            alert.show();
-//        }
 
         baseStructure.startXProperty().bind(srcClass.getBaseLayout().layoutXProperty()
                 .add(srcClass.getBaseLayout().translateXProperty()
@@ -100,13 +90,17 @@ public class GRelation {
         baseStructure.toBack();
     }
 
+    /**
+     * Swaps source and destination elements.
+     */
     public void swapDirection() {
-        // TODO: swap direction
         model.swapDirection();
     }
 
+    /**
+     * Sets color of relation depending on selected type.
+     */
     public void updateColor() {
-        // TODO:
         switch(model.getRelationType()) {
             case ASSOCIATION:
                 baseStructure.setStroke(Color.BLACK);

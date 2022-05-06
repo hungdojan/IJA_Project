@@ -24,9 +24,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+/**
+ * Starting point of the program.
+ */
 public class MainWindow {
-    @FXML
-    private MenuBar menuBar;
     @FXML
     private TabPane mainTab;
     @FXML
@@ -47,10 +48,8 @@ public class MainWindow {
      * @throws FileNotFoundException Exception is thrown in case of errors while loading assets
      */
     public void newClass() throws FileNotFoundException {
-        // save old work??
         mainTab.getTabs().clear();
         baseDiagram = new GClassDiagram(Templates.createClassDiagramModel(), mainTab);
-//        GClassElement.initPositions();
     }
 
     /**
@@ -58,7 +57,6 @@ public class MainWindow {
      * @throws FileNotFoundException Exception is thrown in case of non-existence of file.
      */
     public void loadFile() throws FileNotFoundException {
-//        GClassElement.initPositions();
         // create opening window dialog
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter fileExtension = new FileChooser.ExtensionFilter("JSON file", "*.json");
@@ -67,13 +65,11 @@ public class MainWindow {
 
         // proceed to load file
         if (selectedFile != null && selectedFile.isFile()) {
-            // TODO: ask to save work
             mainTab.getTabs().clear();
             try {
                 baseDiagram = new GClassDiagram(JsonParser.initFromFile(selectedFile.getAbsolutePath()), mainTab);
             } catch (IOException e) {
                 baseDiagram = new GClassDiagram(Templates.createClassDiagramModel(), mainTab);
-                // TODO: couldn't load data
             }
         }
     }
@@ -93,7 +89,6 @@ public class MainWindow {
         if (!filePath.endsWith(".json"))
             filePath += ".json";
 
-        // TODO: proceed to store diagram
         if (baseDiagram != null) {
             JsonParser.saveToFile(baseDiagram.getModel(), filePath);
         }
@@ -119,7 +114,6 @@ public class MainWindow {
      * Close program from MenuBar
      */
     public void close() {
-        // TODO: ask for save?
         Platform.exit();
     }
 }
