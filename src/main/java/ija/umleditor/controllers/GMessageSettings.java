@@ -6,11 +6,9 @@ import ija.umleditor.models.UMLMessage;
 import ija.umleditor.models.UMLOperation;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -97,6 +95,13 @@ public class GMessageSettings {
             owner.removeGMessage(gModel);
         });
 
+        // separator between messages
+        Separator sep = new Separator();
+        sep.setMaxWidth(Double.MAX_VALUE);
+        sep.setPadding(new Insets(5, 0, 5, 0));
+        HBox.setHgrow(sep, Priority.ALWAYS);
+        menuVBox.getChildren().add(sep);
+
         // put parts into grid
         messageGrid.add(srcLabel, 0, 0);
         messageGrid.add(destLabel, 1, 0);
@@ -109,6 +114,7 @@ public class GMessageSettings {
         messageGrid.add(msgTF, 0, 3);
         messageGrid.add(operationCB, 1, 3);
         messageGrid.add(deleteMsgButton, 2, 3);
+        messageGrid.add(sep, 0, 4, 3, 1);
 
         for (Node child : messageGrid.getChildren()) {
             HBox.setHgrow(child, Priority.ALWAYS);

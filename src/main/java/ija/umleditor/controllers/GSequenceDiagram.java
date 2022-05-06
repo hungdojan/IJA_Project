@@ -38,8 +38,6 @@ public class GSequenceDiagram {
     private final List<GMessageSettings> gMessageSettingsList = new ArrayList<>();
     private final CommandBuilder commandBuilder = new CommandBuilder();
     private final ObservableList<String> observableClassNames = FXCollections.observableArrayList();
-    public final static ObservableList<String> messageType =
-            FXCollections.observableArrayList("Sync", "Async", "Return", "Create", "Free");
     private final ObservableList<String> observableObjects = FXCollections.observableArrayList();
     private final GClassDiagram owner;
     private GObject selectedObject;
@@ -128,7 +126,6 @@ public class GSequenceDiagram {
         this.owner = Objects.requireNonNull(owner);
 
         baseTab = new Tab(model.getName());
-
 
         // content pane
         baseHBox = new HBox();
