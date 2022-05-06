@@ -106,7 +106,8 @@ public class GObject {
         line.startYProperty().bind(objectLabel.layoutYProperty().add(objectLabel.heightProperty()));
         line.endXProperty().bind(objectLabel.layoutXProperty()
                 .add(objectLabel.translateXProperty()).add(objectLabel.widthProperty().divide(2)));
-        line.endYProperty().bind(objectLabel.layoutYProperty().add(root.computeAreaInScreen()));
+        // line.endYProperty().bind(objectLabel.layoutYProperty().add(root.computeAreaInScreen()));
+        line.endYProperty().bind(root.heightProperty());
 
         // moving with object
         objectLabel.setOnMouseClicked(ev -> {

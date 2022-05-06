@@ -14,11 +14,13 @@ package ija.umleditor.controllers;
 import ija.umleditor.models.UMLMessage;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.scene.Group;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
+import javafx.scene.shape.QuadCurve;
 import javafx.scene.transform.Rotate;
 
 import java.util.Objects;
@@ -29,11 +31,15 @@ public class GMessage {
     private GObject dstGObject;
     private final Polygon arrow;
     private final Line msgLine;
-    private final Label nameLabel;
+    private Line line1;
+    private Line line2;
+    private Line line3;
+    private Label nameLabel = null;
     private final double startYPos = 100;
     private final double offsetYPos = 50;
     private final StringProperty labelText = new SimpleStringProperty();
     private boolean pointLeft;
+    private Pane root;
 
     public UMLMessage getModel() {
         return model;
@@ -65,41 +71,127 @@ public class GMessage {
         srcGObject = Objects.requireNonNull(obj1);
         dstGObject = Objects.requireNonNull(obj2);
         this.model  = Objects.requireNonNull(model);
+        this.root = Objects.requireNonNull(root);
         String text = model.getName();
 
         // create line
         msgLine = new Line();
         msgLine.setStrokeWidth(2);
 
-        // bind line to objects
-        msgLine.startXProperty().bind(srcGObject.getObjectLabel().layoutXProperty()
-                .add(srcGObject.getObjectLabel().translateXProperty().add(srcGObject.getObjectLabel().widthProperty().divide(2))));
-        msgLine.setStartY(startYPos + offsetYPos * count);
-        msgLine.endXProperty().bind(dstGObject.getObjectLabel().layoutXProperty()
-                .add(dstGObject.getObjectLabel().translateXProperty().add(dstGObject.getObjectLabel().widthProperty().divide(2))));
-        msgLine.setEndY(startYPos + offsetYPos * count);
-
-        nameLabel = new Label();
-        nameLabel.textProperty().bind(labelText);
-        nameLabel.setLayoutY(startYPos + offsetYPos * count - 25);
-        nameLabel.translateXProperty().bind(msgLine.endXProperty().add(nameLabel.widthProperty()).divide(2));
-        updateText();
-
         arrow = new Polygon();
         arrow.getPoints().addAll(0.0, 0.0, 20.0, 8.0, 8.0, 20.0);
-        arrow.setFill(Color.BLACK);
-        Rotate rotation = new Rotate(3.0/4.0*180);
-        arrow.getTransforms().add(rotation);
-        arrow.translateXProperty().bind(msgLine.endXProperty().add(msgLine.translateXProperty()));
-        arrow.translateYProperty().bind(msgLine.endYProperty().add(msgLine.translateYProperty()));
-        pointLeft = srcGObject.getObjectLabel().getLayoutX() > dstGObject.getObjectLabel().getLayoutX();
-        // turn arrow if it goes to the left
-        if (pointLeft) {
-            Rotate rotation2 = new Rotate(180);
-            arrow.getTransforms().add(rotation2);
-        }
 
-        root.getChildren().addAll(msgLine, arrow, nameLabel);
+        if (srcGObject == dstGObject) {
+
+            // create three lines and bind them together
+            line1 = new Line();
+            line1.setStrokeWidth(2);
+            line1.startXProperty().bind(srcGObject.getObjectLabel().layoutXProperty()
+                    .add(srcGObject.getObjectLabel().translateXProperty().add(srcGObject.getObjectLabel().widthProperty().divide(2))));
+            line1.setStartY(startYPos + offsetYPos * count);
+            line1.endXProperty().bind(srcGObject.getObjectLabel().layoutXProperty()
+                    .add(srcGObject.getObjectLabel().translateXProperty().add(srcGObject.getObjectLabel().widthProperty())));
+            line1.setEndY(startYPos + offsetYPos * count);
+
+            line2 = new Line();
+            line2.setStrokeWidth(2);
+            line2.startXProperty().bind(line1.translateXProperty().add(line1.endXProperty()));
+            line2.setStartY(startYPos + offsetYPos * count);
+            line2.endXProperty().bind(line1.translateXProperty().add(line1.endXProperty()));
+            line2.setEndY(startYPos + offsetYPos * count + 20);
+
+            line3 = new Line();
+            line3.setStrokeWidth(2);
+            line3.startXProperty().bind(srcGObject.getObjectLabel().layoutXProperty()
+                    .add(srcGObject.getObjectLabel().translateXProperty().add(srcGObject.getObjectLabel().widthProperty())));
+            line3.setStartY(startYPos + offsetYPos * count + 20);
+            line3.endXProperty().bind(srcGObject.getObjectLabel().layoutXProperty()
+                    .add(srcGObject.getObjectLabel().translateXProperty().add(srcGObject.getObjectLabel().widthProperty().divide(2))));
+            line3.setEndY(startYPos + offsetYPos * count + 20);
+
+            // bind text field to the first line
+            nameLabel = new Label();
+            nameLabel.setStyle("-fx-background-color: #f4f4f4");
+            nameLabel.textProperty().bind(labelText);
+            nameLabel.setLayoutY(startYPos + offsetYPos * count - 25);
+            nameLabel.translateXProperty().bind((line1.endXProperty().add(line1.startXProperty())).divide(2).subtract(nameLabel.widthProperty().divide(2)));
+            updateText();
+
+            switch (model.getMessageType()){
+                case ASYNC:
+                    arrow.setFill(Color.TRANSPARENT);
+                    arrow.setStrokeWidth(2);
+                    arrow.getStrokeDashArray().addAll(20d);
+                    arrow.setStroke(Color.BLACK);
+                    break;
+                case SYNC:
+                    arrow.setFill(Color.BLACK);
+                    break;
+                case RETURN:
+                    arrow.setFill(Color.TRANSPARENT);
+                    arrow.setStrokeWidth(2);
+                    arrow.getStrokeDashArray().addAll(20d);
+                    arrow.setStroke(Color.BLACK);
+                    line1.getStrokeDashArray().addAll(9d, 9d);
+                    line2.getStrokeDashArray().addAll(9d, 9d);
+                    line3.getStrokeDashArray().addAll(9d, 9d);
+                    break;
+            }
+
+            Rotate rotation = new Rotate(-180/4.0);
+            arrow.getTransforms().add(rotation);
+            arrow.translateXProperty().bind(line3.endXProperty().add(line3.translateXProperty()));
+            arrow.translateYProperty().bind(line3.endYProperty().add(line3.translateYProperty()));
+
+            root.getChildren().addAll(line1, line2, line3, arrow, nameLabel);
+        } else {
+            // bind line to objects
+            msgLine.startXProperty().bind(srcGObject.getObjectLabel().layoutXProperty()
+                    .add(srcGObject.getObjectLabel().translateXProperty().add(srcGObject.getObjectLabel().widthProperty().divide(2))));
+            msgLine.setStartY(startYPos + offsetYPos * count);
+            msgLine.endXProperty().bind(dstGObject.getObjectLabel().layoutXProperty()
+                    .add(dstGObject.getObjectLabel().translateXProperty().add(dstGObject.getObjectLabel().widthProperty().divide(2))));
+            msgLine.setEndY(startYPos + offsetYPos * count);
+
+            nameLabel = new Label();
+            nameLabel.setStyle("-fx-background-color: #f4f4f4");
+            nameLabel.textProperty().bind(labelText);
+            nameLabel.setLayoutY(startYPos + offsetYPos * count - 25);
+            nameLabel.translateXProperty().bind((msgLine.endXProperty().add(msgLine.startXProperty())).divide(2).subtract(nameLabel.widthProperty().divide(2)));
+            updateText();
+
+            switch (model.getMessageType()){
+                case ASYNC:
+                    arrow.setFill(Color.TRANSPARENT);
+                    arrow.setStrokeWidth(2);
+                    arrow.getStrokeDashArray().addAll(20d);
+                    arrow.setStroke(Color.BLACK);
+                    break;
+                case SYNC:
+                    arrow.setFill(Color.BLACK);
+                    break;
+                case RETURN:
+                    arrow.setFill(Color.TRANSPARENT);
+                    arrow.setStrokeWidth(2);
+                    arrow.getStrokeDashArray().addAll(20d);
+                    arrow.setStroke(Color.BLACK);
+                    msgLine.getStrokeDashArray().addAll(10d, 10d);
+                    break;
+            }
+
+            Rotate rotation = new Rotate(3.0/4.0*180);
+            arrow.getTransforms().add(rotation);
+            arrow.translateXProperty().bind(msgLine.endXProperty().add(msgLine.translateXProperty()));
+            arrow.translateYProperty().bind(msgLine.endYProperty().add(msgLine.translateYProperty()));
+            pointLeft = srcGObject.getObjectLabel().getLayoutX() > dstGObject.getObjectLabel().getLayoutX();
+            // turn arrow if it goes to the left
+            if (pointLeft) {
+                Rotate rotation2 = new Rotate(180);
+                arrow.getTransforms().add(rotation2);
+            }
+
+            root.getChildren().addAll(msgLine, arrow, nameLabel);
+        }
     }
 
     /**
@@ -134,7 +226,12 @@ public class GMessage {
     }
 
     public void removeFromCanvas(Pane canvas) {
-        canvas.getChildren().removeAll(msgLine, arrow, nameLabel);
+        if (srcGObject == dstGObject) {
+            canvas.getChildren().removeAll(line1, line2, line3, arrow, nameLabel);
+        }
+        else {
+            canvas.getChildren().removeAll(msgLine, arrow, nameLabel);
+        }
     }
 
     /**
@@ -147,5 +244,62 @@ public class GMessage {
         msgLine.setLayoutY(msgLine.getLayoutY() + offsetDown * offsetYPos);
         nameLabel.setLayoutY(nameLabel.getLayoutY() + offsetDown * offsetYPos);
         arrow.setLayoutY(arrow.getLayoutY() + offsetDown * offsetYPos);
+    }
+
+    public void update(String msg) {
+        if (Objects.equals(msg, "line")) {
+            root.getChildren().remove(arrow);
+            if (srcGObject == dstGObject) {
+                switch (model.getMessageType()){
+                    case ASYNC:
+                        arrow.setFill(Color.TRANSPARENT);
+                        arrow.setStrokeWidth(2);
+                        arrow.getStrokeDashArray().addAll(20d);
+                        arrow.setStroke(Color.BLACK);
+                        line1.getStrokeDashArray().clear();
+                        line2.getStrokeDashArray().clear();
+                        line3.getStrokeDashArray().clear();
+                        break;
+                    case SYNC:
+                        arrow.setFill(Color.BLACK);
+                        line1.getStrokeDashArray().clear();
+                        line2.getStrokeDashArray().clear();
+                        line3.getStrokeDashArray().clear();
+                        break;
+                    case RETURN:
+                        arrow.setFill(Color.TRANSPARENT);
+                        arrow.setStrokeWidth(2);
+                        arrow.getStrokeDashArray().addAll(20d);
+                        arrow.setStroke(Color.BLACK);
+                        line1.getStrokeDashArray().addAll(9d, 9d);
+                        line2.getStrokeDashArray().addAll(9d, 9d);
+                        line3.getStrokeDashArray().addAll(9d, 9d);
+                        break;
+                }
+            }
+            else {
+                switch (model.getMessageType()) {
+                    case ASYNC:
+                        arrow.setFill(Color.TRANSPARENT);
+                        arrow.setStrokeWidth(2);
+                        arrow.getStrokeDashArray().addAll(20d);
+                        arrow.setStroke(Color.BLACK);
+                        msgLine.getStrokeDashArray().clear();
+                        break;
+                    case SYNC:
+                        arrow.setFill(Color.BLACK);
+                        msgLine.getStrokeDashArray().clear();
+                        break;
+                    case RETURN:
+                        arrow.setFill(Color.TRANSPARENT);
+                        arrow.setStrokeWidth(2);
+                        arrow.getStrokeDashArray().addAll(20d);
+                        arrow.setStroke(Color.BLACK);
+                        msgLine.getStrokeDashArray().addAll(10d, 10d);
+                        break;
+                }
+            }
+            root.getChildren().add(arrow);
+        }
     }
 }
