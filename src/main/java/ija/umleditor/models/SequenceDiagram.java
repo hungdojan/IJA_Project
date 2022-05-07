@@ -53,7 +53,7 @@ public class SequenceDiagram extends Element {
      * @return List of instances of UMLMessage
      */
     public List<UMLMessage> getMessages() {
-        return Collections.unmodifiableList(messages);
+        return messages;
     }
 
     /**
@@ -129,6 +129,41 @@ public class SequenceDiagram extends Element {
         if (msg == null || messages.contains(msg))
             return false;
         return messages.add(msg);
+    }
+
+    /**
+     * Returns instance of message on a given position.
+     * @param pos Position of message.
+     * @return Instance of message if found, null otherwise.
+     */
+    public UMLMessage getMessageAt(int pos) {
+        try {
+            return messages.get(pos);
+        } catch (IndexOutOfBoundsException ignored) {
+            return null;
+        }
+    }
+    /**
+     * Removes message from the sequence diagram.
+     * @param msg Instance of message to remove.
+     * @return Whether removal was successful.
+     */
+    public boolean removeMessage(UMLMessage msg) {
+        if (msg == null)
+            return false;
+        return messages.remove(msg);
+    }
+
+    /**
+     * Removes message from the sequence diagram.
+     * @param pos Position of message in the diagram.
+     * @return Whether removal was successful.
+     */
+    public boolean removeMessage(int pos) {
+        var msg = getMessageAt(pos);
+        if (msg == null)
+            return false;
+        return messages.remove(msg);
     }
 
     /**
