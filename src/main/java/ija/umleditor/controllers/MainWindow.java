@@ -15,8 +15,8 @@ import ija.umleditor.models.JsonParser;
 import ija.umleditor.template.Templates;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.*;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
@@ -95,19 +95,66 @@ public class MainWindow {
     }
 
     /**
-     * Opens help dialog window.
-     */
-    public void showHelp() {
-        // TODO: show Help dialog
-        System.out.println("Help dialog");
-    }
-
-    /**
      * Opens about dialog window.
      */
     public void showAbout() {
-        // TODO: show About dialog
-        System.out.println("About dialog");
+        Dialog<String> aboutDialog = new Dialog<>();
+        aboutDialog.getDialogPane().setMinHeight(150);
+        aboutDialog.getDialogPane().setMinWidth(500);
+        aboutDialog.setTitle("About");
+        aboutDialog.setContentText(
+                "Submission for semester assignment of class IJA at FIT, BUT 2021/22.\n" +
+                "Authors: Do Hung, Kolarik Petr\n" +
+                "Date of completion: 07/05/2022"
+        );
+        aboutDialog.show();
+        aboutDialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+    }
+
+    /**
+     * Opens help dialog window.
+     */
+    public void showHelp() {
+        Dialog<String> helpDialog = new Dialog<>();
+        helpDialog.getDialogPane().setMinHeight(600);
+        helpDialog.getDialogPane().setMinWidth(1050);
+        helpDialog.setTitle("Help");
+        helpDialog.setContentText(
+                "KEYBOARD SHORTCUTS:\n\n" +
+
+                        "ctrl + Z: undo\n" +
+                        "ctrl + Y: redo\n" +
+                        "ctrl + S: save file\n" +
+                        "ctrl + O: open file\n" +
+                        "ctrl + N: create brand-new class diagram (original diagram is deleted)\n\n" +
+
+                        "CLASS DIAGRAM:\n\n" +
+
+                        "Adding element: Pick one of the templates from the left side and press it.\n" +
+                        "Editing element: Click on element you want to edit and menu will pop up from the right side.\n" +
+                        "Functions of the right menu:\n" +
+                        "\t Name: Edit name, set if element is abstract a set its stereotype.\n" +
+                        "\t Attributes: Add or delete attribute or edit visibility, type and name of already existing one.\n" +
+                        "\t Operations: Add or delete operation or edit visibility, type and name of already existing one.\n" +
+                        "\t\t Parameters: Add or delete parameter or edit type and name of already existing one.\n" +
+                        "\t Relations: \"Add relation\" button opens menu where it is necessary to enter name and type of relation. Button \"Draw\" creates the relation.\n" +
+                        "\t\t Types of relation: Association - black line; Aggregation - green line; Composition - blue line; Inheritance - orange line.\n" +
+                        "Deleting element: Click on element and press delete button on keyboard.\n" +
+                        "Moving with object: Use left mouse button and drag.\n" +
+                        "Moving with canvas: Use right mouse button and drag.\n" +
+                        "Creating sequence diagram: Press the \"Create sequence diagram\" button in left menu.\n\n" +
+
+                        "SEQUENCE DIAGRAM:\n\n" +
+
+                        "Adding object: Click on \"Add object\" button in right menu.\n" +
+                        "Editing object: Click on object you want to edit. You can change its name and type and press return button on your keyboard.\n" +
+                        "Adding message: Click on \"Add message\" button in right menu and grid for setting the message will pop up.\n" +
+                        "Setting message: Set source object, destination object, type and either set your own text or pick one of the operations. Button \"Draw\" creates the message.\n" +
+                        "Deleting diagram: Click on \"Delete diagram\" button in right menu."
+
+        );
+        helpDialog.show();
+        helpDialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
     }
 
     /**
