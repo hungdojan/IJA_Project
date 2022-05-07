@@ -92,6 +92,7 @@ public class GSequenceDiagram {
         }
         countMsg++;
         gMessageList.add(position, gMessage);
+        model.getMessages().add(position, gMessage.getModel());
         gMessage.addBackToCanvas(canvas);
     }
 
@@ -113,6 +114,7 @@ public class GSequenceDiagram {
         for (; position < gMessageList.size(); position++)
             gMessageList.get(position).moveContent(-1);
         countMsg--;
+        model.removeMessage(position);
         return pos;
     }
 
@@ -175,15 +177,48 @@ public class GSequenceDiagram {
                 // delete selected object
                 rootTab.setOnKeyPressed(ev -> {
                     if (ev.getCode() == KeyCode.DELETE && selectedObject != null) {
-                        selectedObject.getModel().close();
-                        for (var m : gMessageList.stream().filter(x -> x.getSrcGObject() == selectedObject ||
-                                x.getDstGObject() == selectedObject).collect(Collectors.toList())) {
-                            m.updateColor(true);
-                        }
-                        model.removeObject(selectedObject.getModel());
-                        gObjectList.remove(selectedObject);
-                        canvas.getChildren().remove(selectedObject.getBaseGroup());
-                        update("object");
+                        commandBuilder.execute(new ICommand() {
+                            final GObject object = selectedObject;
+                            final UMLClass classOfInstance = object.getModel().getClassOfInstance();
+                            final List<GMessage> listOfMessages = new ArrayList<>();
+                            @Override
+                            public void undo() {
+                                object.getModel().setClassOfInstance(classOfInstance);
+                                for (var m : listOfMessages) {
+                                    m.updateColor(false);
+                                }
+                                model.addObject(object.getModel());
+                                gObjectList.add(object);
+                                canvas.getChildren().add(object.getBaseGroup());
+                                update("object");
+                            }
+
+                            @Override
+                            public void redo() {
+                                object.getModel().close();
+                                for (var m : listOfMessages) {
+                                    m.updateColor(true);
+                                }
+                                model.removeObject(object.getModel());
+                                gObjectList.remove(object);
+                                canvas.getChildren().remove(object.getBaseGroup());
+                                update("object");
+                            }
+
+                            @Override
+                            public void execute() {
+                                object.getModel().close();
+                                for (var m : gMessageList.stream().filter(x -> x.getSrcGObject() == object ||
+                                        x.getDstGObject() == object).collect(Collectors.toList())) {
+                                    m.updateColor(true);
+                                    listOfMessages.add(m);
+                                }
+                                model.removeObject(object.getModel());
+                                gObjectList.remove(object);
+                                canvas.getChildren().remove(object.getBaseGroup());
+                                update("object");
+                            }
+                        });
                         setSelectedObject(null);
                     } else if (ev.isControlDown() && ev.getCode() == KeyCode.Z) {
                         commandBuilder.undo();
