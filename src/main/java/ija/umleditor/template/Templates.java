@@ -2,6 +2,9 @@ package ija.umleditor.template;
 
 import ija.umleditor.models.*;
 
+/**
+ * Factory class that creates templates of each UML elements.
+ */
 public class Templates {
     private static int classCounter = 1;
     private static int sequenceDiagramCounter = 1;
@@ -30,12 +33,22 @@ public class Templates {
         return model;
     }
 
+    /**
+     * Creates sequence diagram template.
+     * @param baseDiagram Base class diagram to add created classifier into.
+     * @return Instance of Sequence diagram.
+     */
     public static SequenceDiagram createSequenceDiagram(ClassDiagram baseDiagram) {
         SequenceDiagram model = new SequenceDiagram("SequenceDiagram" + sequenceDiagramCounter++);
         baseDiagram.addSequenceDiagram(model);
         return model;
     }
 
+    /**
+     * Creates class model template.
+     * @param baseDiagram Base class diagram to add created classifier into.
+     * @return Instance of class.
+     */
     public static UMLClassifier createClassModel(ClassDiagram baseDiagram) {
         int attributeCounter = 1;
         int operationCounter = 1;
@@ -50,6 +63,11 @@ public class Templates {
         return model;
     }
 
+    /**
+     * Creates interface model template.
+     * @param baseDiagram Base class diagram to add created classifier into.
+     * @return Instance of interface.
+     */
     public static UMLClassifier createInterfaceModel(ClassDiagram baseDiagram) {
         UMLClass model = (UMLClass) ClassDiagram.createClassifier("Class" + classCounter++, true);
         model.addAttribute(UMLClass.createAttribute(true, "Operation" + model.getOperationCounter(), baseDiagram.getClassifier("void")));
@@ -64,6 +82,7 @@ public class Templates {
 
     /**
      * Creates empty class template.
+     * @param baseDiagram Base class diagram to add created classifier into.
      * @return Instance of empty UMLClass
      */
     public static UMLClassifier createEmptyClassModel(ClassDiagram baseDiagram) {
@@ -74,6 +93,12 @@ public class Templates {
         return model;
     }
 
+    /**
+     * Creates attribute template.
+     * @param baseClass Base class to get attribute counter.
+     * @param baseDiagram Base class diagram to add created classifier into.
+     * @return Instance of attribute.
+     */
     public static UMLAttribute createAttribute(UMLClass baseClass, ClassDiagram baseDiagram) {
         var type = baseDiagram.getClassifier("string");
         if (type == null)
@@ -82,6 +107,12 @@ public class Templates {
         return UMLClass.createAttribute(false, "Attribute" + baseClass.getAttributeCounter(), type);
     }
 
+    /**
+     * Creates operation template.
+     * @param baseClass Base class to get operation counter.
+     * @param baseDiagram Base class diagram to add created classifier into.
+     * @return Instance of operation.
+     */
     public static UMLOperation createOperation(UMLClass baseClass, ClassDiagram baseDiagram) {
         var type = baseDiagram.getClassifier("string");
         if (type == null)
@@ -90,7 +121,12 @@ public class Templates {
         return (UMLOperation) UMLClass.createAttribute(true, "Operation" + baseClass.getOperationCounter(), type);
     }
 
-    public static UMLAttribute createParameter(UMLOperation baseOperation, ClassDiagram baseDiagram) {
+    /**
+     * Creates parameter template.
+     * @param baseDiagram Base class diagram to add created classifier into.
+     * @return Instance of parameter.
+     */
+    public static UMLAttribute createParameter(ClassDiagram baseDiagram) {
         var type = baseDiagram.getClassifier("string");
         if (type == null)
             baseDiagram.addClassifier(ClassDiagram.createClassifier("string", false));
@@ -98,6 +134,10 @@ public class Templates {
         return (UMLAttribute) UMLClass.createAttribute(false, "Parameter"+ UMLOperation.getParameterCounter(), type);
     }
 
+    /**
+     * Creates object template.
+     * @return Instance of object.
+     */
     public static UMLObject createObject() {
         return new UMLObject("Object" + objectCounter++, SequenceDiagram.undefClass);
     }

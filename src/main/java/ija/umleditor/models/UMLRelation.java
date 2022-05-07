@@ -83,6 +83,7 @@ public final class UMLRelation {
 
     /**
      * Updates source class message.
+     * @param srcMsg New source class message.
      */
     public void setSrcMsg(String srcMsg) {
         this.srcMsg = srcMsg;
@@ -98,6 +99,7 @@ public final class UMLRelation {
 
     /**
      * Updates destination class message.
+     * @param destMsg New destination class message.
      */
     public void setDestMsg(String destMsg) {
         this.destMsg = destMsg;

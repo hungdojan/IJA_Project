@@ -86,7 +86,7 @@ public class RightMenu {
         addParamButton.setAlignment(Pos.CENTER);
         addParamButton.setStyle("-fx-background-radius: 15px");
         addParamButton.setOnAction(ev -> {
-            UMLAttribute newAttr = Templates.createParameter(operation, baseElement.getOwner().getModel());
+            UMLAttribute newAttr = Templates.createParameter(baseElement.getOwner().getModel());
             HBox attrItemHBox = createParameterHBox(operation, attributesVBox, commandBuilder, newAttr);
             // create undo and redo action for parameter related actions
             commandBuilder.execute(new ICommand() {

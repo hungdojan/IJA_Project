@@ -55,6 +55,7 @@ public abstract class Element {
 
     /**
      * Creates JSON representation of element's content.
+     * @return Instance of JSON object.
      */
     public abstract JSONObject createJsonObject();
 }

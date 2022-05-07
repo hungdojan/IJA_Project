@@ -61,6 +61,7 @@ public class GRelation {
      * @param e1 Starting element
      * @param e2 Ending element
      * @param basePane Canvas to put the relation on
+     * @param model UML model instance of GRelation.
      */
     public GRelation(GClassElement e1, GClassElement e2, Pane basePane, UMLRelation model) {
         srcClass = Objects.requireNonNull(e1);

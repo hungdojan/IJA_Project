@@ -27,6 +27,7 @@ public class JsonParser {
     /**
      * Loads JSON file content into class diagram.
      * @param filePath Path to JSON file with content.
+     * @throws IOException Exception cased by unsuccessful file loading.
      * @return Instance of class diagram.
      */
     public static ClassDiagram initFromFile(String filePath) throws IOException {
