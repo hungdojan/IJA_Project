@@ -368,7 +368,10 @@ public class GSequenceDiagram {
         Button deleteDiagram = new Button("Delete diagram");
         deleteDiagram.setMaxWidth(Double.MAX_VALUE);
         deleteDiagram.setStyle("-fx-background-radius: 15px");
-        deleteDiagram.setOnAction(ev -> rootTab.getTabs().remove(baseTab));
+        deleteDiagram.setOnAction(ev -> {
+            rootTab.getTabs().remove(baseTab);
+            owner.getModel().removeSequenceDiagram(model);
+        });
 
         // set margin between items in vbox
         VBox.setMargin(nameTF, new Insets(0, 0, 5, 0));
