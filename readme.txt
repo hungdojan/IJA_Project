@@ -29,15 +29,18 @@ předem vytvořené šablony, které může později upravovat. Pro úpravu jedn
 se obarví (značení toho, se který elementem se pracuje) a objeví se nastavovací panel na pravé straně. Uživatel může přidávat,
 měnit a mazat různé atributy elementu.
 
+Sekvenční diagram se může vygenerovat pomocí tlačítka `Create sequence diagram` na levém panelu dole.
+To vytvoří nový tab s novou instancí sekvenčního diagramu. V něm uživatel může vytvářet nové objekty a
+jednotlivé zprávy mezi objekty. Objekty se po označení dají editovat či smazat pomocí **DELETE** tlačítka
+na klávesnici. Tímto způsobem se dá smazat i elementy v diagramu tříd.
+
 Práce s relacemi
 ----------------
 Diagram editor umožňuje přidávat vztahy/relace mezi elementy. Pro přidání vztahu uživatel klikne na **Relations** -> "Add relation".
 Objeví se textové pole a tlačítko "Delete". Tlačítko slouží k mazání vztahu, textové pole očekává jmého třidy, se kterým je vybraný element ve vztahu.
 Nakonec uživatel zmáčkne "Enter" a vztah se vytvoří.
 
-Chybějící implementace
-----------------------
-- sekvenční diagram
-- více druhů vztahů mezi třídními elementy
-- načítání ze a ukládání do souboru
-- a drobné chyby v programu
+Načítání a ukládání do souboru
+------------------------------
+Program povoluje i načítání a ukládání do souborů formátu JSON. To se řeší pomocí klávesových zkratek `Ctrl+S`
+pro uložení souboru a `Ctrl+O` pro načtení souboru.

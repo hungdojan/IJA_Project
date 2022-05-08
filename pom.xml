@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>ija</groupId>
-    <artifactId>UmlEditor</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>ija-app</artifactId>
+    <version>1.0</version>
     <name>UmlEditor</name>
 
     <properties>
@@ -62,8 +62,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.4.0</version>
                 <configuration>
-                    <reportOutputDirectory>docs</reportOutputDirectory>
-
+                    <reportOutputDirectory>doc</reportOutputDirectory>
                 </configuration>
             </plugin>
 
@@ -84,6 +83,7 @@
                             </outputDirectory>
                         </configuration>
                     </execution>
+
                 </executions>
             </plugin>
             <plugin>
@@ -98,6 +98,7 @@
                             <mainClass>
                                 ija.umleditor.Main
                             </mainClass>
+
                         </manifest>
                     </archive>
                 </configuration>
@@ -113,6 +114,14 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>org.openjfx:javafx-controls</exclude>
+                                    <exclude>org.openjfx:javafx-graphics</exclude>
+                                    <exclude>org.openjfx:javafx-base</exclude>
+                                    <exclude>org.openjfx:javafx-fxml</exclude>
+                                </excludes>
+                            </artifactSet>
                             <shadedArtifactAttached>true</shadedArtifactAttached>
                             <transformers>
                                 <transformer implementation=
@@ -129,6 +138,9 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M5</version>
+                <configuration>
+                    <argLine>--add-opens ija.umleditor/ija.umleditor=ALL-UNNAMED</argLine>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
