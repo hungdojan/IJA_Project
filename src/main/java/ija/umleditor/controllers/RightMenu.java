@@ -506,6 +506,7 @@ public class RightMenu {
                             .map(RelationType::name).collect(Collectors.toList())
                     );
             ComboBox<String> typesCB = new ComboBox<>(relationTypes);
+            typesCB.setValue(RelationType.AGGREGATION.toString());
             typesCB.setOnAction(e -> {
                 var gRelation = baseElement.getOwner().getRelation(
                         baseElement.getModel(),
