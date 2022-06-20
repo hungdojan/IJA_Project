@@ -41,6 +41,10 @@ public class GRelation {
         return srcClass;
     }
 
+    public UMLRelation getModel() {
+        return model;
+    }
+
     /**
      * Gets second model of element.
      * @return Instance of GClassElement

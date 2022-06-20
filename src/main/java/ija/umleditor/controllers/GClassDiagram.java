@@ -217,6 +217,15 @@ public class GClassDiagram {
                                 element.selected(false);
                                 // remove class element from class diagram
                                 model.removeClassElement(element.getModel());
+                                List<GRelation> relations = new ArrayList<>();
+                                for (var gRel : gRelationsList) {
+                                    for (var rel : element.getModel().getRelations()) {
+                                        if (gRel.getModel() == rel) {
+                                            relations.add(gRel);
+                                            removeRelation(gRel);
+                                        }
+                                    }
+                                }
                                 // remove element from canvas
                                 canvas.getChildren().remove(element.getBaseLayout());
                                 // remove gClassElement
